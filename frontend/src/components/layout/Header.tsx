@@ -1,0 +1,85 @@
+import { NavLink } from "react-router-dom";
+import {
+  LayoutDashboard,
+  FlaskConical,
+  Database,
+  Sun,
+  Moon,
+  Search,
+  MessageSquare,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAppStore } from "@/stores/appStore";
+
+const navItems = [
+  { to: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/simulations", icon: FlaskConical, label: "Simulations" },
+  { to: "/data", icon: Database, label: "Data" },
+];
+
+export const Header = () => {
+  const { theme, toggleTheme, setCommandBarOpen, toggleSidePanel } =
+    useAppStore();
+
+  return (
+    <header className="h-14 border-b border-border bg-card flex items-center px-4 gap-2 shrink-0">
+      <div className="flex items-center gap-2 mr-6">
+        <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+          <span className="text-primary-foreground font-bold text-sm">P</span>
+        </div>
+        <span className="font-semibold text-sm tracking-tight">
+          Insight Autopilot
+        </span>
+      </div>
+
+      <nav className="flex items-center gap-1">
+        {navItems.map(({ to, icon: Icon, label }) => (
+          <NavLink key={to} to={to}>
+            {({ isActive }) => (
+              <Button
+                variant={isActive ? "secondary" : "ghost"}
+                size="sm"
+                className="gap-1.5 text-xs"
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+              </Button>
+            )}
+          </NavLink>
+        ))}
+      </nav>
+
+      <div className="flex-1" />
+
+      <Button
+        variant="outline"
+        size="sm"
+        className="gap-2 text-xs text-muted-foreground px-3"
+        onClick={() => setCommandBarOpen(true)}
+      >
+        <Search className="h-3.5 w-3.5" />
+        <span>Ask AI...</span>
+        <kbd className="ml-2 pointer-events-none inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+          <span className="text-xs">⌘</span>K
+        </kbd>
+      </Button>
+
+      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleTheme}>
+        {theme === "dark" ? (
+          <Sun className="h-4 w-4" />
+        ) : (
+          <Moon className="h-4 w-4" />
+        )}
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={toggleSidePanel}
+      >
+        <MessageSquare className="h-4 w-4" />
+      </Button>
+    </header>
+  );
+};
