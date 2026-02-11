@@ -2,27 +2,49 @@ import json
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from app.models.database import get_db
-from app.models.schemas import InsightResponse
+from app.models.schemas import InsightResponse, ExpandInsightResponse
 from app.services import insight_engine, data_processor
 
 router = APIRouter(prefix="/api/insights", tags=["insights"])
 
 
 @router.get("", response_model=list[InsightResponse])
-async def list_insights(dataset_id: str) -> list[InsightResponse]:
+async def list_insights(
+    dataset_id: str,
+    type_filter: str | None = None,
+    sort_by: str = "impact_score",
+) -> list[InsightResponse]:
     db = await get_db()
     try:
-        cursor = await db.execute(
-            "SELECT id, dataset_id, type, priority, title, description, impact_revenue, impact_customers, confidence, chart_data, ai_reasoning, dismissed, created_at FROM insights WHERE dataset_id = ? AND dismissed = 0 ORDER BY created_at DESC",
-            (dataset_id,),
+        query = (
+            "SELECT id, dataset_id, type, priority, title, description, "
+            "impact_revenue, impact_customers, confidence, chart_data, "
+            "ai_reasoning, impact_score, suggested_questions, dismissed, created_at "
+            "FROM insights WHERE dataset_id = ? AND dismissed = 0"
         )
+        params: list[str] = [dataset_id]
+
+        if type_filter:
+            query += " AND type = ?"
+            params.append(type_filter)
+
+        sort_map = {
+            "impact_score": "impact_score DESC NULLS LAST",
+            "impact_revenue": "ABS(impact_revenue) DESC NULLS LAST",
+            "created_at": "created_at DESC",
+        }
+        query += f" ORDER BY {sort_map.get(sort_by, sort_map['impact_score'])}"
+
+        cursor = await db.execute(query, params)
         rows = await cursor.fetchall()
         return [
             InsightResponse(
                 id=r[0], dataset_id=r[1], type=r[2], priority=r[3], title=r[4],
                 description=r[5], impact_revenue=r[6], impact_customers=r[7],
                 confidence=r[8], chart_data=json.loads(r[9]) if r[9] else None,
-                ai_reasoning=r[10], dismissed=bool(r[11]), created_at=r[12],
+                ai_reasoning=r[10], impact_score=r[11],
+                suggested_questions=json.loads(r[12]) if r[12] else None,
+                dismissed=bool(r[13]), created_at=r[14],
             )
             for r in rows
         ]
@@ -69,7 +91,10 @@ async def get_insight(insight_id: str) -> InsightResponse:
     db = await get_db()
     try:
         cursor = await db.execute(
-            "SELECT id, dataset_id, type, priority, title, description, impact_revenue, impact_customers, confidence, chart_data, ai_reasoning, dismissed, created_at FROM insights WHERE id = ?",
+            "SELECT id, dataset_id, type, priority, title, description, "
+            "impact_revenue, impact_customers, confidence, chart_data, "
+            "ai_reasoning, impact_score, suggested_questions, dismissed, created_at "
+            "FROM insights WHERE id = ?",
             (insight_id,),
         )
         r = await cursor.fetchone()
@@ -79,10 +104,64 @@ async def get_insight(insight_id: str) -> InsightResponse:
             id=r[0], dataset_id=r[1], type=r[2], priority=r[3], title=r[4],
             description=r[5], impact_revenue=r[6], impact_customers=r[7],
             confidence=r[8], chart_data=json.loads(r[9]) if r[9] else None,
-            ai_reasoning=r[10], dismissed=bool(r[11]), created_at=r[12],
+            ai_reasoning=r[10], impact_score=r[11],
+            suggested_questions=json.loads(r[12]) if r[12] else None,
+            dismissed=bool(r[13]), created_at=r[14],
         )
     finally:
         await db.close()
+
+
+@router.post("/{insight_id}/expand", response_model=ExpandInsightResponse)
+async def expand_insight(insight_id: str) -> ExpandInsightResponse:
+    db = await get_db()
+    try:
+        cursor = await db.execute(
+            "SELECT id, dataset_id, type, priority, title, description, impact_revenue, impact_customers, confidence, ai_reasoning FROM insights WHERE id = ?",
+            (insight_id,),
+        )
+        r = await cursor.fetchone()
+        if not r:
+            raise HTTPException(status_code=404, detail="Insight not found")
+
+        # Cache hit — return existing reasoning
+        if r[9]:
+            return ExpandInsightResponse(insight_id=r[0], ai_reasoning=r[9])
+
+        insight_row = {
+            "title": r[4],
+            "type": r[2],
+            "priority": r[3],
+            "description": r[5],
+            "impact_revenue": r[6],
+            "impact_customers": r[7],
+            "confidence": r[8],
+        }
+        dataset_id = r[1]
+    finally:
+        await db.close()
+
+    # Generate reasoning via Claude
+    try:
+        reasoning = await insight_engine.generate_expanded_reasoning(insight_row, dataset_id)
+    except Exception:
+        reasoning = (
+            "## Analysis Unavailable\n\n"
+            "Unable to generate detailed analysis at this time. Please try again later."
+        )
+
+    # Save to DB for caching (including fallback, so we don't retry on every click)
+    db = await get_db()
+    try:
+        await db.execute(
+            "UPDATE insights SET ai_reasoning = ? WHERE id = ?",
+            (reasoning, insight_id),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+
+    return ExpandInsightResponse(insight_id=insight_id, ai_reasoning=reasoning)
 
 
 @router.patch("/{insight_id}/dismiss")

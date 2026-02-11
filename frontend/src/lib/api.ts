@@ -42,10 +42,20 @@ export interface UploadResponse {
   row_count: number;
 }
 
+export type InsightType =
+  | "alert"
+  | "opportunity"
+  | "trend"
+  | "anomaly"
+  | "correlation"
+  | "segment"
+  | "feature_adoption"
+  | "revenue_attribution";
+
 export interface InsightResponse {
   id: string;
   dataset_id: string;
-  type: "alert" | "opportunity" | "trend";
+  type: InsightType;
   priority: "critical" | "high" | "medium" | "low";
   title: string;
   description: string;
@@ -54,8 +64,15 @@ export interface InsightResponse {
   confidence: number | null;
   chart_data: Record<string, unknown> | null;
   ai_reasoning: string | null;
+  impact_score: number | null;
+  suggested_questions: string[] | null;
   dismissed: boolean;
   created_at: string | null;
+}
+
+export interface ExpandInsightResponse {
+  insight_id: string;
+  ai_reasoning: string;
 }
 
 export interface SimulationResponse {
@@ -118,13 +135,20 @@ export const dataApi = {
 
 // Insights endpoints
 export const insightsApi = {
-  list: (datasetId: string) =>
-    request<InsightResponse[]>(`/insights?dataset_id=${datasetId}`),
+  list: (datasetId: string, typeFilter?: string, sortBy?: string) => {
+    const params = new URLSearchParams({ dataset_id: datasetId });
+    if (typeFilter) params.set("type_filter", typeFilter);
+    if (sortBy) params.set("sort_by", sortBy);
+    return request<InsightResponse[]>(`/insights?${params.toString()}`);
+  },
 
   get: (id: string) => request<InsightResponse>(`/insights/${id}`),
 
   dismiss: (id: string) =>
     request<{ status: string }>(`/insights/${id}/dismiss`, { method: "PATCH" }),
+
+  expand: (id: string) =>
+    request<ExpandInsightResponse>(`/insights/${id}/expand`, { method: "POST" }),
 
   kpis: (datasetId: string) =>
     request<Record<string, unknown>>(`/insights/kpis?dataset_id=${datasetId}`),

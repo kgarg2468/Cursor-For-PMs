@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import { X, Maximize2, Minimize2, Plus, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -14,8 +15,19 @@ export const SidePanel = () => {
     toggleSidePanelExpanded,
   } = useAppStore();
 
-  const { pinnedCards, unpinCard, messages, thinkingSteps, isStreaming } =
+  const { pinnedCards, unpinCard, messages, thinkingSteps, isStreaming, draftMessage, setDraftMessage } =
     useChatStore();
+
+  const [inputValue, setInputValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (draftMessage) {
+      setInputValue(draftMessage);
+      setDraftMessage("");
+      inputRef.current?.focus();
+    }
+  }, [draftMessage, setDraftMessage]);
 
   if (!sidePanelOpen) return null;
 
@@ -119,9 +131,12 @@ export const SidePanel = () => {
       <div className="border-t border-border p-3">
         <div className="flex gap-2">
           <input
+            ref={inputRef}
             type="text"
             placeholder="Ask about your data..."
             className="flex-1 bg-secondary rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
           />
           <Button size="sm" className="shrink-0">
             Send

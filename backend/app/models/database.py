@@ -78,5 +78,16 @@ async def init_db() -> None:
             );
         """)
         await db.commit()
+
+        # Add new columns (safe for existing data — ignores if already present)
+        for alter_sql in [
+            "ALTER TABLE insights ADD COLUMN impact_score REAL",
+            "ALTER TABLE insights ADD COLUMN suggested_questions TEXT",
+        ]:
+            try:
+                await db.execute(alter_sql)
+            except Exception:
+                pass  # Column already exists
+        await db.commit()
     finally:
         await db.close()

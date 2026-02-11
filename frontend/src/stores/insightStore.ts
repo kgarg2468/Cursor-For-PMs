@@ -11,12 +11,16 @@ export interface KPIs {
   total_accounts?: number;
 }
 
+export type SortBy = "impact_score" | "created_at" | "impact_revenue";
+
 interface InsightState {
   insights: InsightResponse[];
   kpis: KPIs | null;
   isGenerating: boolean;
   generationProgress: string[];
   thinkingSteps: string[];
+  typeFilter: string | null;
+  sortBy: SortBy;
 
   setInsights: (insights: InsightResponse[]) => void;
   addInsight: (insight: InsightResponse) => void;
@@ -26,6 +30,8 @@ interface InsightState {
   addGenerationProgress: (step: string) => void;
   addThinkingStep: (content: string) => void;
   clearGenerationProgress: () => void;
+  setTypeFilter: (filter: string | null) => void;
+  setSortBy: (sortBy: SortBy) => void;
   reset: () => void;
 }
 
@@ -35,6 +41,8 @@ export const useInsightStore = create<InsightState>((set) => ({
   isGenerating: false,
   generationProgress: [],
   thinkingSteps: [],
+  typeFilter: null,
+  sortBy: "impact_score",
 
   setInsights: (insights) => set({ insights }),
   addInsight: (insight) =>
@@ -54,5 +62,7 @@ export const useInsightStore = create<InsightState>((set) => ({
       thinkingSteps: [...state.thinkingSteps, content],
     })),
   clearGenerationProgress: () => set({ generationProgress: [], thinkingSteps: [] }),
-  reset: () => set({ insights: [], kpis: null, isGenerating: false, generationProgress: [], thinkingSteps: [] }),
+  setTypeFilter: (filter) => set({ typeFilter: filter }),
+  setSortBy: (sortBy) => set({ sortBy }),
+  reset: () => set({ insights: [], kpis: null, isGenerating: false, generationProgress: [], thinkingSteps: [], typeFilter: null, sortBy: "impact_score" }),
 }));

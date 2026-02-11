@@ -35,8 +35,15 @@ class InsightResponse(BaseModel):
     confidence: Optional[float] = None
     chart_data: Optional[dict] = None
     ai_reasoning: Optional[str] = None
+    impact_score: Optional[float] = None
+    suggested_questions: Optional[list[str]] = None
     dismissed: bool = False
     created_at: Optional[str] = None
+
+
+class ExpandInsightResponse(BaseModel):
+    insight_id: str
+    ai_reasoning: str
 
 
 class SimulationRequest(BaseModel):

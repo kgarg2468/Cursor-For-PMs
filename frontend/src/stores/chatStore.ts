@@ -11,6 +11,7 @@ interface ChatState {
   pinnedCards: string[];
   isStreaming: boolean;
   thinkingSteps: string[];
+  draftMessage: string;
 
   setConversations: (conversations: ConversationResponse[]) => void;
   addConversation: (conversation: ConversationResponse) => void;
@@ -24,6 +25,7 @@ interface ChatState {
   setIsStreaming: (streaming: boolean) => void;
   addThinkingStep: (step: string) => void;
   clearThinkingSteps: () => void;
+  setDraftMessage: (message: string) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -33,6 +35,7 @@ export const useChatStore = create<ChatState>((set) => ({
   pinnedCards: [],
   isStreaming: false,
   thinkingSteps: [],
+  draftMessage: "",
 
   setConversations: (conversations) => set({ conversations }),
   addConversation: (conversation) =>
@@ -67,4 +70,5 @@ export const useChatStore = create<ChatState>((set) => ({
   addThinkingStep: (step) =>
     set((state) => ({ thinkingSteps: [...state.thinkingSteps, step] })),
   clearThinkingSteps: () => set({ thinkingSteps: [] }),
+  setDraftMessage: (message) => set({ draftMessage: message }),
 }));
