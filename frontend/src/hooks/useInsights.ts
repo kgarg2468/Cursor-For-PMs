@@ -1,0 +1,146 @@
+import { useCallback, useEffect, useRef } from "react";
+import { useAppStore } from "@/stores/appStore";
+import { useInsightStore } from "@/stores/insightStore";
+import type { KPIs } from "@/stores/insightStore";
+import { insightsApi } from "@/lib/api";
+import type { InsightResponse } from "@/lib/api";
+import { connectPostSSE, type SSEConnection } from "@/lib/sse";
+
+export function useInsights() {
+  const activeDataset = useAppStore((s) => s.activeDataset);
+  const {
+    insights,
+    kpis,
+    isGenerating,
+    generationProgress,
+    thinkingSteps,
+    setInsights,
+    addInsight,
+    setKpis,
+    setIsGenerating,
+    addGenerationProgress,
+    addThinkingStep,
+    clearGenerationProgress,
+    reset,
+  } = useInsightStore();
+
+  const connectionRef = useRef<SSEConnection | null>(null);
+  const lastDatasetIdRef = useRef<string | null>(null);
+
+  const startGeneration = useCallback(
+    (datasetId: string) => {
+      // Clean up any existing connection
+      if (connectionRef.current) {
+        connectionRef.current.close();
+      }
+
+      reset();
+      setIsGenerating(true);
+
+      const url = insightsApi.generateUrl(datasetId);
+      connectionRef.current = connectPostSSE(
+        url,
+        (event) => {
+          switch (event.type) {
+            case "progress":
+              addGenerationProgress(event.data.step as string);
+              break;
+            case "thinking":
+              addThinkingStep(event.data.content as string);
+              break;
+            case "kpis":
+              setKpis(event.data as unknown as KPIs);
+              break;
+            case "insight":
+              addInsight(event.data as unknown as InsightResponse);
+              break;
+            case "complete":
+              setIsGenerating(false);
+              connectionRef.current = null;
+              break;
+            case "error":
+              setIsGenerating(false);
+              connectionRef.current = null;
+              break;
+          }
+        },
+        () => {
+          setIsGenerating(false);
+          connectionRef.current = null;
+        },
+        () => {
+          setIsGenerating(false);
+          connectionRef.current = null;
+        }
+      );
+    },
+    [reset, setIsGenerating, addGenerationProgress, addThinkingStep, setKpis, addInsight]
+  );
+
+  const regenerate = useCallback(() => {
+    if (activeDataset) {
+      startGeneration(activeDataset.id);
+    }
+  }, [activeDataset, startGeneration]);
+
+  // When activeDataset changes, check if insights exist, otherwise generate
+  useEffect(() => {
+    if (!activeDataset) {
+      reset();
+      lastDatasetIdRef.current = null;
+      return;
+    }
+
+    // Skip if we already loaded/generated for this dataset
+    if (lastDatasetIdRef.current === activeDataset.id) return;
+    lastDatasetIdRef.current = activeDataset.id;
+
+    // Check for existing insights
+    (async () => {
+      try {
+        const existing = await insightsApi.list(activeDataset.id);
+        if (existing.length > 0) {
+          setInsights(existing);
+          // Also fetch KPIs
+          try {
+            const kpisData = await insightsApi.kpis(activeDataset.id);
+            setKpis(kpisData as unknown as KPIs);
+          } catch {
+            // KPIs are optional
+          }
+        } else {
+          startGeneration(activeDataset.id);
+        }
+      } catch {
+        // If listing fails, try generating
+        startGeneration(activeDataset.id);
+      }
+    })();
+
+    return () => {
+      if (connectionRef.current) {
+        connectionRef.current.close();
+        connectionRef.current = null;
+      }
+    };
+  }, [activeDataset, reset, setInsights, setKpis, startGeneration]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (connectionRef.current) {
+        connectionRef.current.close();
+      }
+    };
+  }, []);
+
+  return {
+    insights,
+    kpis,
+    isGenerating,
+    generationProgress,
+    thinkingSteps,
+    regenerate,
+    clearGenerationProgress,
+  };
+}

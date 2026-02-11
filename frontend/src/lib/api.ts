@@ -126,7 +126,10 @@ export const insightsApi = {
   dismiss: (id: string) =>
     request<{ status: string }>(`/insights/${id}/dismiss`, { method: "PATCH" }),
 
-  generate: (datasetId: string) =>
+  kpis: (datasetId: string) =>
+    request<Record<string, unknown>>(`/insights/kpis?dataset_id=${datasetId}`),
+
+  generateUrl: (datasetId: string) =>
     `${API_BASE}/insights/generate?dataset_id=${datasetId}`,
 };
 
