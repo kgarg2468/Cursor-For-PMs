@@ -37,6 +37,35 @@ async def stream_completion(
                     yield {"type": "text", "content": event.delta.text}
 
 
+async def stream_chat(
+    system_prompt: str,
+    messages: list[dict[str, str]],
+    budget_tokens: int = 2000,
+) -> AsyncGenerator[dict[str, str], None]:
+    """Stream a multi-turn chat response. Messages should be text-only (no thinking blocks)."""
+    async with client.messages.stream(
+        model=MODEL,
+        max_tokens=16000,
+        thinking={
+            "type": "enabled",
+            "budget_tokens": budget_tokens,
+        },
+        system=system_prompt,
+        messages=messages,
+    ) as stream:
+        async for event in stream:
+            if event.type == "content_block_start":
+                if event.content_block.type == "thinking":
+                    yield {"type": "thinking", "content": ""}
+                elif event.content_block.type == "text":
+                    yield {"type": "text_start", "content": ""}
+            elif event.type == "content_block_delta":
+                if event.delta.type == "thinking_delta":
+                    yield {"type": "thinking", "content": event.delta.thinking}
+                elif event.delta.type == "text_delta":
+                    yield {"type": "text", "content": event.delta.text}
+
+
 async def complete(
     system_prompt: str,
     user_prompt: str,

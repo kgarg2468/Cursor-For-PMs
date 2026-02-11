@@ -193,4 +193,9 @@ export const chatApi = {
 
   streamUrl: (conversationId: string) =>
     `${API_BASE}/chat/conversations/${conversationId}/stream`,
+
+  streamBody: (content: string, pinnedContext?: string[]): Record<string, unknown> => ({
+    content,
+    ...(pinnedContext?.length ? { pinned_context: pinnedContext } : {}),
+  }),
 };

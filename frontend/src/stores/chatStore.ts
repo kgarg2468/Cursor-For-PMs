@@ -25,6 +25,7 @@ interface ChatState {
   setIsStreaming: (streaming: boolean) => void;
   addThinkingStep: (step: string) => void;
   clearThinkingSteps: () => void;
+  removeLastMessage: () => void;
   setDraftMessage: (message: string) => void;
 }
 
@@ -70,5 +71,7 @@ export const useChatStore = create<ChatState>((set) => ({
   addThinkingStep: (step) =>
     set((state) => ({ thinkingSteps: [...state.thinkingSteps, step] })),
   clearThinkingSteps: () => set({ thinkingSteps: [] }),
+  removeLastMessage: () =>
+    set((state) => ({ messages: state.messages.slice(0, -1) })),
   setDraftMessage: (message) => set({ draftMessage: message }),
 }));

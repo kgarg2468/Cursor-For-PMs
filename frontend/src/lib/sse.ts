@@ -56,16 +56,22 @@ export function connectPostSSE(
   url: string,
   onEvent: SSEEventHandler,
   onError?: (error: Error) => void,
-  onComplete?: () => void
+  onComplete?: () => void,
+  body?: Record<string, unknown>
 ): SSEConnection {
   const controller = new AbortController();
 
   (async () => {
     try {
+      const headers: Record<string, string> = { "Accept": "text/event-stream" };
+      if (body) {
+        headers["Content-Type"] = "application/json";
+      }
       const response = await fetch(url, {
         method: "POST",
         signal: controller.signal,
-        headers: { "Accept": "text/event-stream" },
+        headers,
+        ...(body ? { body: JSON.stringify(body) } : {}),
       });
 
       if (!response.ok) {
