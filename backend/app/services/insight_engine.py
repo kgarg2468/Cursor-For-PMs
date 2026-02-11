@@ -104,7 +104,7 @@ Dataset context:
         result = await claude_client.complete(
             system_prompt=EXPAND_SYSTEM_PROMPT,
             user_prompt=user_prompt,
-            budget_tokens=1000,
+            budget_tokens=1024,
         )
         return result["text"]
     except Exception as e:

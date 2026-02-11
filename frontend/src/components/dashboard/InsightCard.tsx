@@ -4,15 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Pin, X, ChevronDown, ChevronUp, Loader2, MessageSquare,
+  Pin, ChevronDown, ChevronUp, Loader2, MessageSquare,
   AlertTriangle, Lightbulb, TrendingUp, Activity, Link2, Users, Boxes, DollarSign,
 } from "lucide-react";
 import type { InsightResponse, InsightType } from "@/lib/api";
 import { insightsApi } from "@/lib/api";
-import { useInsightStore } from "@/stores/insightStore";
 import { useChatStore } from "@/stores/chatStore";
 import { useAppStore } from "@/stores/appStore";
-import { MiniChart } from "./MiniChart";
+import { InsightChart } from "./InsightChart";
 
 interface InsightCardProps {
   insight: InsightResponse;
@@ -127,7 +126,6 @@ const renderMarkdown = (text: string) => {
 };
 
 export const InsightCard = ({ insight }: InsightCardProps) => {
-  const dismissInsight = useInsightStore((s) => s.dismissInsight);
   const pinCard = useChatStore((s) => s.pinCard);
   const setDraftMessage = useChatStore((s) => s.setDraftMessage);
   const setSidePanelOpen = useAppStore((s) => s.setSidePanelOpen);
@@ -146,15 +144,6 @@ export const InsightCard = ({ insight }: InsightCardProps) => {
     labels: string[];
     values: number[];
   } | null;
-
-  const handleDismiss = async () => {
-    dismissInsight(insight.id);
-    try {
-      await insightsApi.dismiss(insight.id);
-    } catch {
-      // Best effort
-    }
-  };
 
   const handlePin = () => {
     pinCard(insight.id);
@@ -181,23 +170,25 @@ export const InsightCard = ({ insight }: InsightCardProps) => {
     <Card className={`${config.border} !py-0 !gap-0`}>
       {/* Collapsed content — always visible */}
       <div className="px-4 py-3">
-        {/* Row 1: Type badge + title + mini chart */}
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <Badge className={`${config.color} shrink-0 text-xs px-1.5 py-0 gap-1`}>
-              <TypeIcon className="h-2.5 w-2.5" />
-              {config.label}
-            </Badge>
-            <span className="text-sm font-semibold">{insight.title}</span>
-          </div>
-          <div className="shrink-0">
-            <MiniChart chartData={chartData} color={config.chartColor} />
-          </div>
+        {/* Row 1: Type badge + title */}
+        <div className="flex items-center gap-2">
+          <Badge className={`${config.color} shrink-0 text-xs px-1.5 py-0 gap-1`}>
+            <TypeIcon className="h-2.5 w-2.5" />
+            {config.label}
+          </Badge>
+          <span className="text-sm font-semibold">{insight.title}</span>
         </div>
 
         {/* Description */}
         {insight.description && (
           <p className="text-xs text-muted-foreground mt-1">{insight.description}</p>
+        )}
+
+        {/* Chart — full width below description */}
+        {chartData && (
+          <div className="mt-3">
+            <InsightChart chartData={chartData} color={config.chartColor} />
+          </div>
         )}
 
         {/* Row 2: Impact badges + actions */}
@@ -234,15 +225,6 @@ export const InsightCard = ({ insight }: InsightCardProps) => {
               title="Pin to chat"
             >
               <Pin className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={handleDismiss}
-              title="Dismiss"
-            >
-              <X className="h-3 w-3" />
             </Button>
             <Button
               variant="ghost"

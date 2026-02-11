@@ -205,12 +205,11 @@ export const DashboardPage = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+          <div className="columns-1 md:columns-2 xl:columns-3 gap-4 space-y-4">
             {filteredInsights.map((insight) => (
-              <InsightCard
-                key={insight.id}
-                insight={insight}
-              />
+              <div key={insight.id} className="break-inside-avoid">
+                <InsightCard insight={insight} />
+              </div>
             ))}
           </div>
         </div>
