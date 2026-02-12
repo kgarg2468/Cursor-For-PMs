@@ -83,6 +83,7 @@ async def init_db() -> None:
         for alter_sql in [
             "ALTER TABLE insights ADD COLUMN impact_score REAL",
             "ALTER TABLE insights ADD COLUMN suggested_questions TEXT",
+            "ALTER TABLE simulations ADD COLUMN template_id TEXT",
         ]:
             try:
                 await db.execute(alter_sql)

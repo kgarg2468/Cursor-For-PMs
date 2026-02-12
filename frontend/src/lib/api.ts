@@ -166,6 +166,8 @@ export const simulationsApi = {
 
   runUrl: (datasetId: string, featureName: string) =>
     `${API_BASE}/simulations/run?dataset_id=${datasetId}&feature_name=${encodeURIComponent(featureName)}`,
+
+  runGraphUrl: () => `${API_BASE}/simulations/run-graph`,
 };
 
 // Chat endpoints

@@ -134,3 +134,39 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+/* Simulation node enter animation */
+@keyframes node-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.sim-node-enter {
+  animation: node-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* React Flow dark mode overrides */
+.sim-canvas .react-flow__background {
+  background-color: transparent;
+}
+
+.sim-canvas .react-flow__edge-path {
+  stroke: oklch(0.4 0 0);
+}
+
+.sim-canvas .react-flow__edge.animated .react-flow__edge-path {
+  stroke-dasharray: 5;
+  animation: dash 0.5s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -10;
+  }
+}

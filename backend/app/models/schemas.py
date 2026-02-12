@@ -91,3 +91,12 @@ class SendMessageRequest(BaseModel):
 
 class CreateConversationRequest(BaseModel):
     title: Optional[str] = None
+
+
+class RunGraphSimulationRequest(BaseModel):
+    template_id: str
+    template_name: str
+    node_params: dict[str, dict[str, float]]
+    node_structure: list[dict]
+    edge_structure: list[dict]
+    dataset_id: Optional[str] = None

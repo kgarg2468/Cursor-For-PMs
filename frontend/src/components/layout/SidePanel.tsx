@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/appStore";
 import { useChatStore } from "@/stores/chatStore";
 import { useInsightStore } from "@/stores/insightStore";
+import { useSimulationStore } from "@/stores/simulationStore";
 import { useChat } from "@/hooks/useChat";
 import { cn } from "@/lib/utils";
 
@@ -345,6 +346,14 @@ const ChatInput = ({
 };
 
 /* ---------- PinnedContext ---------- */
+const SIM_LABEL_MAP: Record<string, string> = {
+  fan: "Fan Chart",
+  tornado: "Tornado Chart",
+  histogram: "Histogram",
+  scenarios: "Scenario Table",
+  var: "Value at Risk",
+};
+
 const PinnedContext = ({
   pinnedCards,
   onUnpin,
@@ -353,18 +362,28 @@ const PinnedContext = ({
   onUnpin: (id: string) => void;
 }) => {
   const insights = useInsightStore((s) => s.insights);
+  const simTemplate = useSimulationStore((s) => s.selectedTemplate);
 
   if (pinnedCards.length === 0) return null;
 
   return (
     <div className="px-3 py-2 border-b border-border flex flex-wrap gap-1.5">
       {pinnedCards.map((cardId) => {
-        const insight = insights.find((i) => i.id === cardId);
-        const label = insight
-          ? insight.title.length > 30
-            ? insight.title.slice(0, 30) + "..."
-            : insight.title
-          : cardId.slice(0, 8) + "...";
+        let label: string;
+        if (cardId.startsWith("sim-")) {
+          // e.g. "sim-fan-sso-tax" → "Fan Chart (SSO Tax)"
+          const parts = cardId.replace("sim-", "").split("-");
+          const chartKey = parts[0];
+          const chartLabel = SIM_LABEL_MAP[chartKey] ?? chartKey;
+          label = `${chartLabel}${simTemplate ? ` (${simTemplate.name})` : ""}`;
+        } else {
+          const insight = insights.find((i) => i.id === cardId);
+          label = insight
+            ? insight.title.length > 30
+              ? insight.title.slice(0, 30) + "..."
+              : insight.title
+            : cardId.slice(0, 8) + "...";
+        }
         return (
           <button
             key={cardId}

@@ -1,9 +1,35 @@
 import json
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from app.models.database import get_db
-from app.models.schemas import SimulationResponse
+from app.models.schemas import SimulationResponse, RunGraphSimulationRequest
+from app.services import simulation_engine
 
 router = APIRouter(prefix="/api/simulations", tags=["simulations"])
+
+
+@router.post("/run-graph")
+async def run_graph_simulation(req: RunGraphSimulationRequest) -> StreamingResponse:
+    async def event_stream():
+        async for event in simulation_engine.run_simulation(
+            template_id=req.template_id,
+            template_name=req.template_name,
+            node_params=req.node_params,
+            node_structure=req.node_structure,
+            edge_structure=req.edge_structure,
+            dataset_id=req.dataset_id,
+        ):
+            yield f"data: {json.dumps(event)}\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.get("", response_model=list[SimulationResponse])
