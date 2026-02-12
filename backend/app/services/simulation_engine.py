@@ -5,95 +5,17 @@ from app.services import claude_client, data_processor
 from app.models.database import get_db
 
 
-SIMULATION_SYSTEM_PROMPT = """You are a senior product strategist and financial modeler. You simulate the business impact of strategic decisions by reasoning through causal chains numerically.
+SIMULATION_MODEL = "claude-sonnet-4-5-20250929"
 
-You will receive:
-1. A graph of causal nodes (source → modifiers → sinks) with parameter values
-2. Optionally, real dataset context for grounding
+SIMULATION_SYSTEM_PROMPT = """You are a product strategist. Given a causal graph of nodes and parameters, produce a simulation result as JSON.
 
-Your job: reason step-by-step through the causal chain, computing how each modifier transforms the source metrics into the sink outcomes. Use the exact parameter values provided. Show your numerical reasoning.
+Be fast. Use quick estimates. Do NOT over-think. RESPOND IMMEDIATELY with the JSON. No preamble, no explanation, no markdown fences.
 
-IMPORTANT: After your reasoning, return a JSON object with EXACTLY these 6 keys. Return ONLY the JSON, no markdown code fences:
+Return a JSON object with EXACTLY these 6 keys:
 
-{
-  "fan_chart": {
-    "title": "Projected Revenue Over 12 Months",
-    "x_label": "Month",
-    "y_label": "Revenue ($)",
-    "series": [
-      {"id": "p10", "label": "Pessimistic (P10)", "data": [{"x": "M1", "y": number}, ...]},
-      {"id": "p50", "label": "Expected (P50)", "data": [{"x": "M1", "y": number}, ...]},
-      {"id": "p90", "label": "Optimistic (P90)", "data": [{"x": "M1", "y": number}, ...]},
-      {"id": "baseline", "label": "No Change", "data": [{"x": "M1", "y": number}, ...]}
-    ]
-  },
-  "tornado_chart": {
-    "title": "Sensitivity Analysis",
-    "factors": [
-      {"factor": "Parameter Name", "low": number, "high": number, "base": number},
-      ...
-    ]
-  },
-  "histogram": {
-    "title": "Outcome Distribution (Month 12)",
-    "x_label": "Revenue Impact ($)",
-    "buckets": [
-      {"range": "$0-10K", "count": number},
-      ...
-    ],
-    "percentiles": {"p5": number, "p50": number, "p95": number}
-  },
-  "scenario_table": {
-    "title": "Scenario Comparison",
-    "scenarios": [
-      {
-        "name": "Best Case",
-        "revenue_impact": number,
-        "customer_impact": number,
-        "timeline": "X months",
-        "probability": number,
-        "key_assumption": "One line"
-      },
-      {
-        "name": "Base Case",
-        "revenue_impact": number,
-        "customer_impact": number,
-        "timeline": "X months",
-        "probability": number,
-        "key_assumption": "One line"
-      },
-      {
-        "name": "Worst Case",
-        "revenue_impact": number,
-        "customer_impact": number,
-        "timeline": "X months",
-        "probability": number,
-        "key_assumption": "One line"
-      }
-    ],
-    "recommendation": "best" | "base" | "worst"
-  },
-  "var_card": {
-    "title": "Value at Risk",
-    "var_amount": number,
-    "var_description": "One-line description of downside risk",
-    "confidence_level": 95,
-    "expected_value": number,
-    "best_case": number,
-    "recommendation": "1-2 sentence actionable recommendation"
-  },
-  "summary": "2-3 sentence executive summary of the simulation results. Be specific with numbers."
-}
+{"fan_chart":{"title":"...","x_label":"Month","y_label":"Revenue ($)","series":[{"id":"p10","label":"Pessimistic (P10)","data":[{"x":"M1","y":N},...12 points]},{"id":"p50","label":"Expected (P50)","data":[...]},{"id":"p90","label":"Optimistic (P90)","data":[...]},{"id":"baseline","label":"No Change","data":[...]}]},"tornado_chart":{"title":"Sensitivity Analysis","factors":[{"factor":"Name","low":N,"high":N,"base":N},...4-6 factors sorted by swing]},"histogram":{"title":"Outcome Distribution (Month 12)","x_label":"Revenue Impact ($)","buckets":[{"range":"$0-10K","count":N},...8-12 buckets],"percentiles":{"p5":N,"p50":N,"p95":N}},"scenario_table":{"title":"Scenario Comparison","scenarios":[{"name":"Best Case","revenue_impact":N,"customer_impact":N,"timeline":"X months","probability":N,"key_assumption":"..."},{"name":"Base Case",...},{"name":"Worst Case",...}],"recommendation":"best"|"base"|"worst"},"var_card":{"title":"Value at Risk","var_amount":N,"var_description":"...","confidence_level":95,"expected_value":N,"best_case":N,"recommendation":"..."},"summary":"2-3 sentence executive summary with specific numbers."}
 
-Rules:
-- All monetary values in dollars (no formatting, just numbers)
-- Fan chart MUST have exactly 12 monthly data points per series (M1-M12)
-- Tornado chart: 4-6 factors, sorted by total swing (high - low) descending
-- Histogram: 8-12 buckets covering the outcome range
-- Scenario table: exactly 3 rows (Best/Base/Worst)
-- VaR: 95% confidence level, var_amount is the maximum expected loss
-- Ground numbers in the provided parameters — don't invent unrealistic figures
-- Return ONLY the JSON object, no extra text before or after"""
+Rules: All monetary values as plain numbers. Fan chart: exactly 12 points per series (M1-M12). Tornado: 4-6 factors. Histogram: 8-12 buckets. Scenario table: exactly 3 rows. Ground numbers in provided parameters. Return ONLY valid JSON."""
 
 
 def _build_graph_description(
@@ -180,18 +102,10 @@ async def run_simulation(
     # Step 3: Build prompt
     yield {"type": "progress", "data": {"step": "Running simulation with AI..."}}
 
-    user_prompt = f"""Simulate the following strategic scenario. Reason through each node in the causal chain numerically, then produce the 6 required JSON outputs.
+    user_prompt = f"""Simulate this scenario. Return the JSON with all 6 keys.
 
 {graph_description}
-{dataset_context}
-
-Think step-by-step through the causal chain:
-1. Start with the source node values
-2. Apply each modifier sequentially
-3. Compute the final sink outcomes
-4. Generate fan chart (12 months), tornado sensitivity, histogram distribution, scenario table, VaR, and summary
-
-Return the JSON object with all 6 keys."""
+{dataset_context}"""
 
     # Step 4: Stream Claude response
     full_text = ""
@@ -199,7 +113,9 @@ Return the JSON object with all 6 keys."""
     async for event in claude_client.stream_completion(
         system_prompt=SIMULATION_SYSTEM_PROMPT,
         user_prompt=user_prompt,
-        budget_tokens=4000,
+        budget_tokens=1024,
+        model=SIMULATION_MODEL,
+        max_tokens=8000,
     ):
         if event["type"] == "thinking":
             thinking_buffer += event["content"]

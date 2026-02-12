@@ -12,11 +12,13 @@ async def stream_completion(
     system_prompt: str,
     user_prompt: str,
     budget_tokens: int = 2000,
+    model: str | None = None,
+    max_tokens: int = 16000,
 ) -> AsyncGenerator[dict[str, str], None]:
     """Stream a Claude response, yielding thinking and text events."""
     async with client.messages.stream(
-        model=MODEL,
-        max_tokens=16000,
+        model=model or MODEL,
+        max_tokens=max_tokens,
         thinking={
             "type": "enabled",
             "budget_tokens": budget_tokens,
