@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import type { DatasetResponse } from "@/lib/api";
 
 interface AppState {
@@ -22,42 +23,67 @@ interface AppState {
   setCommandBarOpen: (open: boolean) => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
-  theme: "dark",
-  activeDataset: null,
-  datasets: [],
-  sidePanelOpen: false,
-  sidePanelExpanded: false,
-  commandBarOpen: false,
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      theme: "dark",
+      activeDataset: null,
+      datasets: [],
+      sidePanelOpen: false,
+      sidePanelExpanded: false,
+      commandBarOpen: false,
 
-  setTheme: (theme) => {
-    document.documentElement.classList.toggle("light", theme === "light");
-    set({ theme });
-  },
+      setTheme: (theme) => {
+        document.documentElement.classList.toggle("light", theme === "light");
+        set({ theme });
+      },
 
-  toggleTheme: () =>
-    set((state) => {
-      const newTheme = state.theme === "dark" ? "light" : "dark";
-      document.documentElement.classList.toggle("light", newTheme === "light");
-      return { theme: newTheme };
+      toggleTheme: () =>
+        set((state) => {
+          const newTheme = state.theme === "dark" ? "light" : "dark";
+          document.documentElement.classList.toggle(
+            "light",
+            newTheme === "light"
+          );
+          return { theme: newTheme };
+        }),
+
+      setActiveDataset: (dataset) => set({ activeDataset: dataset }),
+      setDatasets: (datasets) => set({ datasets }),
+      addDataset: (dataset) =>
+        set((state) => ({ datasets: [dataset, ...state.datasets] })),
+      removeDataset: (id) =>
+        set((state) => ({
+          datasets: state.datasets.filter((d) => d.id !== id),
+          activeDataset:
+            state.activeDataset?.id === id ? null : state.activeDataset,
+        })),
+
+      toggleSidePanel: () =>
+        set((state) => ({ sidePanelOpen: !state.sidePanelOpen })),
+      setSidePanelOpen: (open) => set({ sidePanelOpen: open }),
+      toggleSidePanelExpanded: () =>
+        set((state) => ({ sidePanelExpanded: !state.sidePanelExpanded })),
+      setSidePanelExpanded: (expanded) =>
+        set({ sidePanelExpanded: expanded }),
+      setCommandBarOpen: (open) => set({ commandBarOpen: open }),
     }),
-
-  setActiveDataset: (dataset) => set({ activeDataset: dataset }),
-  setDatasets: (datasets) => set({ datasets }),
-  addDataset: (dataset) =>
-    set((state) => ({ datasets: [dataset, ...state.datasets] })),
-  removeDataset: (id) =>
-    set((state) => ({
-      datasets: state.datasets.filter((d) => d.id !== id),
-      activeDataset:
-        state.activeDataset?.id === id ? null : state.activeDataset,
-    })),
-
-  toggleSidePanel: () =>
-    set((state) => ({ sidePanelOpen: !state.sidePanelOpen })),
-  setSidePanelOpen: (open) => set({ sidePanelOpen: open }),
-  toggleSidePanelExpanded: () =>
-    set((state) => ({ sidePanelExpanded: !state.sidePanelExpanded })),
-  setSidePanelExpanded: (expanded) => set({ sidePanelExpanded: expanded }),
-  setCommandBarOpen: (open) => set({ commandBarOpen: open }),
-}));
+    {
+      name: "product-insight-autopilot-app",
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (s) => ({
+        theme: s.theme,
+        activeDataset: s.activeDataset,
+        datasets: s.datasets,
+      }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.theme) {
+          document.documentElement.classList.toggle(
+            "light",
+            state.theme === "light"
+          );
+        }
+      },
+    }
+  )
+);

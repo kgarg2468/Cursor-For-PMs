@@ -10,11 +10,13 @@ export function useInsights() {
   const activeDataset = useAppStore((s) => s.activeDataset);
   const {
     insights,
+    insightsDatasetId,
     kpis,
     isGenerating,
     generationProgress,
     thinkingSteps,
     setInsights,
+    setInsightsDatasetId,
     addInsight,
     setKpis,
     setIsGenerating,
@@ -35,6 +37,7 @@ export function useInsights() {
       }
 
       reset();
+      setInsightsDatasetId(datasetId);
       setIsGenerating(true);
 
       const url = insightsApi.generateUrl(datasetId);
@@ -74,7 +77,15 @@ export function useInsights() {
         }
       );
     },
-    [reset, setIsGenerating, addGenerationProgress, addThinkingStep, setKpis, addInsight]
+    [
+      reset,
+      setInsightsDatasetId,
+      setIsGenerating,
+      addGenerationProgress,
+      addThinkingStep,
+      setKpis,
+      addInsight,
+    ]
   );
 
   const regenerate = useCallback(() => {
@@ -91,17 +102,25 @@ export function useInsights() {
       return;
     }
 
-    // Skip if we already loaded/generated for this dataset
+    // Already have insights for this dataset (e.g. from persistence or same session) — don't overwrite
+    if (
+      insights.length > 0 &&
+      insightsDatasetId === activeDataset.id
+    ) {
+      lastDatasetIdRef.current = activeDataset.id;
+      return;
+    }
+
+    // Skip if we already loaded/generated for this dataset this run
     if (lastDatasetIdRef.current === activeDataset.id) return;
     lastDatasetIdRef.current = activeDataset.id;
 
-    // Check for existing insights
+    // Check for existing insights from API
     (async () => {
       try {
         const existing = await insightsApi.list(activeDataset.id);
         if (existing.length > 0) {
-          setInsights(existing);
-          // Also fetch KPIs
+          setInsights(existing, activeDataset.id);
           try {
             const kpisData = await insightsApi.kpis(activeDataset.id);
             setKpis(kpisData as unknown as KPIs);
@@ -112,8 +131,10 @@ export function useInsights() {
           startGeneration(activeDataset.id);
         }
       } catch {
-        // If listing fails, try generating
-        startGeneration(activeDataset.id);
+        // If listing fails and we have no in-memory insights for this dataset, try generating
+        if (insightsDatasetId !== activeDataset.id) {
+          startGeneration(activeDataset.id);
+        }
       }
     })();
 
@@ -123,7 +144,15 @@ export function useInsights() {
         connectionRef.current = null;
       }
     };
-  }, [activeDataset, reset, setInsights, setKpis, startGeneration]);
+  }, [
+    activeDataset,
+    insights.length,
+    insightsDatasetId,
+    reset,
+    setInsights,
+    setKpis,
+    startGeneration,
+  ]);
 
   // Cleanup on unmount
   useEffect(() => {

@@ -306,8 +306,8 @@ async def _run_single_simulation(
     dataset_id: str,
     scenario_id: str,
 ) -> Dict[str, Any]:
-    """Run a single simulation and return results."""
-    results = {
+    """Run a single simulation and return results, preserving full scenario metadata."""
+    results: Dict[str, Any] = {
         "scenario_id": scenario_id,
         "scenario_name": scenario["name"],
         "fan_chart": None,
@@ -318,7 +318,11 @@ async def _run_single_simulation(
         "summary": None,
         "error": None,
     }
-    
+    # Preserve scenario metadata for artifact generation (rationale, description, template_type)
+    for key in ("rationale", "description", "template_type", "id"):
+        if key in scenario:
+            results[key] = scenario[key]
+
     try:
         # Convert node_params to the format expected by simulation_engine
         node_params = {}
@@ -411,17 +415,16 @@ async def run_agentic_simulation(insight_id: str) -> AsyncGenerator[Dict[str, An
     yield {"type": "progress", "data": {"step": "Comparing results and determining winner..."}}
     
     winning_scenario = _determine_winner(completed_results)
-    
+
     # Build comparison data
     comparison_data = {
         "scenarios": completed_results,
         "winning_scenario_id": winning_scenario["scenario_id"],
         "baseline": _extract_baseline(completed_results),
     }
-    
-    yield {"type": "comparison_ready", "data": comparison_data}
-    
-    # Save to database
+
+    # Save to database before yielding comparison_ready so the API can UPDATE
+    # artifacts_json when it generates artifacts (record must exist first).
     db = await get_db()
     try:
         await db.execute(
@@ -439,7 +442,8 @@ async def run_agentic_simulation(insight_id: str) -> AsyncGenerator[Dict[str, An
         await db.commit()
     finally:
         await db.close()
-    
+
+    yield {"type": "comparison_ready", "data": comparison_data}
     yield {"type": "complete", "data": {"simulation_id": simulation_id}}
 
 
