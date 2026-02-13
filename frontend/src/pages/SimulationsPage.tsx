@@ -8,6 +8,7 @@ import { TemplatePicker } from "@/components/simulation/TemplatePicker";
 import { SimulationCanvas } from "@/components/simulation/SimulationCanvas";
 import { NodeInspector } from "@/components/simulation/NodeInspector";
 import { SimulationProgress } from "@/components/simulation/SimulationProgress";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AgenticSimulationView } from "@/components/simulation/AgenticSimulationView";
 import { FanChart } from "@/components/simulation/results/FanChart";
 import { TornadoChart } from "@/components/simulation/results/TornadoChart";
@@ -25,11 +26,16 @@ export const SimulationsPage = () => {
   const activeTab = useSimulationStore((s) => s.activeTab);
   const setActiveTab = useSimulationStore((s) => s.setActiveTab);
   
-  // Show agentic view if in agentic mode (full-width container with background)
+  // Show agentic view if in agentic mode (height-guaranteed wrapper so main gets a real height)
   if (agenticMode || agenticModeFromStore) {
     return (
-      <div className="min-h-full w-full bg-background">
-        <AgenticSimulationView />
+      <div className="min-h-full min-h-0 flex-1 flex flex-col w-full bg-background">
+        <ErrorBoundary
+          fallbackTitle="Simulation view error"
+          fallbackMessage="An error occurred while loading the simulation. Try going back and running the simulation again."
+        >
+          <AgenticSimulationView />
+        </ErrorBoundary>
       </div>
     );
   }

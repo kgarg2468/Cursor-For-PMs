@@ -30,6 +30,7 @@ export const AgenticSimulationView = () => {
     setIsRunning,
     addProgress,
     addThinkingStep,
+    setAgenticMode,
   } = useSimulationStore();
   const insightIdFromUrl = searchParams.get("insightId");
   const insightId = insightIdFromUrl || insightIdFromStore;
@@ -41,7 +42,9 @@ export const AgenticSimulationView = () => {
   // Load cached results or trigger new simulation
   useEffect(() => {
     if (!insightId) {
-      setError("No insight ID provided");
+      setError(
+        "Missing insight. Open an insight and try Run Simulation again."
+      );
       setLoading(false);
       return;
     }
@@ -51,17 +54,20 @@ export const AgenticSimulationView = () => {
         // Try to load cached results first
         const cached = await simulationsApi.getAgentic(insightId);
         
-        if (cached && cached.comparison_data) {
+        if (cached?.comparison_data) {
+          const scenariosList = Array.isArray(cached.comparison_data.scenarios)
+            ? cached.comparison_data.scenarios
+            : [];
           setScenarios(
-            cached.comparison_data.scenarios.map((s: any) => ({
-              id: s.scenario_id,
-              name: s.scenario_name,
+            scenariosList.map((s: { scenario_id?: string; scenario_name?: string }) => ({
+              id: s.scenario_id ?? "",
+              name: s.scenario_name ?? "Scenario",
               results: s,
             }))
           );
-          setSelectedScenario(cached.winning_scenario_id);
+          setSelectedScenario(cached.winning_scenario_id ?? null);
           setComparisonData(cached.comparison_data);
-          setArtifacts(cached.artifacts || []);
+          setArtifacts(Array.isArray(cached.artifacts) ? cached.artifacts : []);
           setLoading(false);
           return;
         }
@@ -97,13 +103,14 @@ export const AgenticSimulationView = () => {
               break;
             case "scenario_complete":
               const completed = event.data as any;
-              setScenarios((prev) =>
-                prev.map((s) =>
-                  s.id === completed.scenario_id
+              setScenarios((prev) => {
+                const list = Array.isArray(prev) ? prev : [];
+                return list.map((s) =>
+                  s.id === completed?.scenario_id
                     ? { ...s, results: completed }
                     : s
-                )
-              );
+                );
+              });
               break;
             case "comparison_ready":
               const compData = event.data as any;
@@ -131,6 +138,9 @@ export const AgenticSimulationView = () => {
           }
         },
         () => {
+          setError(
+            "Simulation failed. Check that the backend is running and try again."
+          );
           setIsRunning(false);
           if (connectionRef.current) {
             connectionRef.current.close();
@@ -173,7 +183,13 @@ export const AgenticSimulationView = () => {
     return (
       <div className="min-h-full w-full bg-background flex flex-col items-center justify-center gap-4 p-6">
         <p className="text-sm text-destructive">{error}</p>
-        <Button variant="outline" onClick={() => navigate("/simulations")}>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setAgenticMode(false);
+            navigate("/simulations");
+          }}
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Simulations
         </Button>
@@ -181,7 +197,12 @@ export const AgenticSimulationView = () => {
     );
   }
 
-  const winningScenario = scenarios.find((s) => s.id === selectedScenario);
+  const scenarioIds = scenarios.map((s) => s.id);
+  const activeTab =
+    selectedScenario && scenarioIds.includes(selectedScenario)
+      ? selectedScenario
+      : scenarios[0]?.id ?? undefined;
+  const winningScenario = scenarios.find((s) => s.id === (activeTab ?? selectedScenario));
   const baselineFanChart = comparisonData?.baseline?.fan_chart;
 
   return (
@@ -195,7 +216,13 @@ export const AgenticSimulationView = () => {
               Comparing Status Quo vs Opus Strategy
             </p>
           </div>
-          <Button variant="outline" onClick={() => navigate("/simulations")}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setAgenticMode(false);
+              navigate("/simulations");
+            }}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
@@ -204,7 +231,7 @@ export const AgenticSimulationView = () => {
         {/* Scenario tabs */}
         {scenarios.length > 0 && (
           <Tabs
-            value={selectedScenario || undefined}
+            value={activeTab}
             onValueChange={(v) => setSelectedScenario(v)}
           >
             <TabsList>

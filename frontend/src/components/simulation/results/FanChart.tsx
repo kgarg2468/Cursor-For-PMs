@@ -11,11 +11,18 @@ interface FanChartProps {
 export const FanChart = ({ data, loading, simulationName }: FanChartProps) => {
   if (!data && !loading) return null;
 
-  const chartData =
-    data?.series.map((s) => ({
-      id: s.label,
-      data: s.data.map((d) => ({ x: d.x, y: d.y })),
-    })) ?? [];
+  const series = Array.isArray(data?.series) ? data.series : [];
+  const chartData = series.map((s) => ({
+    id: s?.label ?? "",
+    data: Array.isArray(s?.data)
+      ? s.data
+          .filter((d) => d != null && d.x != null && d.x !== "")
+          .map((d) => ({
+            x: String(d.x),
+            y: Number(d?.y ?? 0),
+          }))
+      : [],
+  }));
 
   return (
     <ResultCard

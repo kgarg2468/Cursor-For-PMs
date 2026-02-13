@@ -19,10 +19,7 @@ async def stream_completion(
     async with client.messages.stream(
         model=model or MODEL,
         max_tokens=max_tokens,
-        thinking={
-            "type": "enabled",
-            "budget_tokens": budget_tokens,
-        },
+        thinking={"type": "adaptive"},
         system=system_prompt,
         messages=[{"role": "user", "content": user_prompt}],
     ) as stream:
@@ -48,10 +45,7 @@ async def stream_chat(
     async with client.messages.stream(
         model=MODEL,
         max_tokens=16000,
-        thinking={
-            "type": "enabled",
-            "budget_tokens": budget_tokens,
-        },
+        thinking={"type": "adaptive"},
         system=system_prompt,
         messages=messages,
     ) as stream:
@@ -77,10 +71,7 @@ async def complete(
     response = await client.messages.create(
         model=MODEL,
         max_tokens=16000,
-        thinking={
-            "type": "enabled",
-            "budget_tokens": budget_tokens,
-        },
+        thinking={"type": "adaptive"},
         system=system_prompt,
         messages=[{"role": "user", "content": user_prompt}],
     )
