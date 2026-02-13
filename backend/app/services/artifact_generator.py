@@ -76,7 +76,9 @@ Prediction: {insight_data['prediction'] or 'N/A'}
 
 ## Winning Scenario
 Name: {winning_scenario.get('scenario_name', 'Unknown')}
-Description: {winning_scenario.get('rationale', 'N/A')}
+Description: {winning_scenario.get('description', winning_scenario.get('rationale', 'N/A'))}
+Rationale: {winning_scenario.get('rationale', 'N/A')}
+Template type: {winning_scenario.get('template_type', 'N/A')}
 
 ## Simulation Results
 Summary: {simulation_results.get('summary', 'N/A')}

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import type {
   ConversationResponse,
   MessageResponse,
@@ -29,49 +30,64 @@ interface ChatState {
   setDraftMessage: (message: string) => void;
 }
 
-export const useChatStore = create<ChatState>((set) => ({
-  conversations: [],
-  activeConversationId: null,
-  messages: [],
-  pinnedCards: [],
-  isStreaming: false,
-  thinkingSteps: [],
-  draftMessage: "",
+export const useChatStore = create<ChatState>()(
+  persist(
+    (set) => ({
+      conversations: [],
+      activeConversationId: null,
+      messages: [],
+      pinnedCards: [],
+      isStreaming: false,
+      thinkingSteps: [],
+      draftMessage: "",
 
-  setConversations: (conversations) => set({ conversations }),
-  addConversation: (conversation) =>
-    set((state) => ({
-      conversations: [conversation, ...state.conversations],
-    })),
-  setActiveConversationId: (id) => set({ activeConversationId: id }),
-  setMessages: (messages) => set({ messages }),
-  addMessage: (message) =>
-    set((state) => ({ messages: [...state.messages, message] })),
-  updateLastAssistantMessage: (content) =>
-    set((state) => {
-      const msgs = [...state.messages];
-      const lastIdx = msgs.length - 1;
-      if (lastIdx >= 0 && msgs[lastIdx].role === "assistant") {
-        msgs[lastIdx] = { ...msgs[lastIdx], content };
-      }
-      return { messages: msgs };
+      setConversations: (conversations) => set({ conversations }),
+      addConversation: (conversation) =>
+        set((state) => ({
+          conversations: [conversation, ...state.conversations],
+        })),
+      setActiveConversationId: (id) => set({ activeConversationId: id }),
+      setMessages: (messages) => set({ messages }),
+      addMessage: (message) =>
+        set((state) => ({ messages: [...state.messages, message] })),
+      updateLastAssistantMessage: (content) =>
+        set((state) => {
+          const msgs = [...state.messages];
+          const lastIdx = msgs.length - 1;
+          if (lastIdx >= 0 && msgs[lastIdx].role === "assistant") {
+            msgs[lastIdx] = { ...msgs[lastIdx], content };
+          }
+          return { messages: msgs };
+        }),
+      pinCard: (cardId) =>
+        set((state) => ({
+          pinnedCards: state.pinnedCards.includes(cardId)
+            ? state.pinnedCards
+            : [...state.pinnedCards, cardId],
+        })),
+      unpinCard: (cardId) =>
+        set((state) => ({
+          pinnedCards: state.pinnedCards.filter((id) => id !== cardId),
+        })),
+      clearPinnedCards: () => set({ pinnedCards: [] }),
+      setIsStreaming: (streaming) => set({ isStreaming: streaming }),
+      addThinkingStep: (step) =>
+        set((state) => ({ thinkingSteps: [...state.thinkingSteps, step] })),
+      clearThinkingSteps: () => set({ thinkingSteps: [] }),
+      removeLastMessage: () =>
+        set((state) => ({ messages: state.messages.slice(0, -1) })),
+      setDraftMessage: (message) => set({ draftMessage: message }),
     }),
-  pinCard: (cardId) =>
-    set((state) => ({
-      pinnedCards: state.pinnedCards.includes(cardId)
-        ? state.pinnedCards
-        : [...state.pinnedCards, cardId],
-    })),
-  unpinCard: (cardId) =>
-    set((state) => ({
-      pinnedCards: state.pinnedCards.filter((id) => id !== cardId),
-    })),
-  clearPinnedCards: () => set({ pinnedCards: [] }),
-  setIsStreaming: (streaming) => set({ isStreaming: streaming }),
-  addThinkingStep: (step) =>
-    set((state) => ({ thinkingSteps: [...state.thinkingSteps, step] })),
-  clearThinkingSteps: () => set({ thinkingSteps: [] }),
-  removeLastMessage: () =>
-    set((state) => ({ messages: state.messages.slice(0, -1) })),
-  setDraftMessage: (message) => set({ draftMessage: message }),
-}));
+    {
+      name: "product-insight-autopilot-chat",
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (s) => ({
+        conversations: s.conversations,
+        activeConversationId: s.activeConversationId,
+        messages: s.messages,
+        pinnedCards: s.pinnedCards,
+        draftMessage: s.draftMessage,
+      }),
+    }
+  )
+);

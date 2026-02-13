@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import type { ActionItemResponse } from "@/lib/api";
 import { useAppStore } from "./appStore";
 
@@ -29,67 +30,119 @@ interface ActionPlanState {
   togglePlanAction: (actionId: string) => void;
 }
 
-export const useActionPlanStore = create<ActionPlanState>((set) => ({
-  selectedInsightId: null,
-  wizardOpen: false,
-  wizardStep: 0,
-  wizardActions: [],
-  isGeneratingActions: false,
-  actionThinkingSteps: [],
-  planActions: [],
-
-  openWizard: (insightId) => {
-    // Close chat side panel when wizard opens
-    useAppStore.getState().setSidePanelOpen(false);
-    set({
-      selectedInsightId: insightId,
-      wizardOpen: true,
-      wizardStep: 0,
-      wizardActions: [],
-      isGeneratingActions: false,
-      actionThinkingSteps: [],
-    });
-  },
-
-  closeWizard: () =>
-    set({
-      wizardOpen: false,
+export const useActionPlanStore = create<ActionPlanState>()(
+  persist(
+    (set) => ({
       selectedInsightId: null,
+      wizardOpen: false,
       wizardStep: 0,
       wizardActions: [],
       isGeneratingActions: false,
       actionThinkingSteps: [],
+      planActions: [],
+
+      openWizard: (insightId) => {
+        useAppStore.getState().setSidePanelOpen(false);
+        set({
+          selectedInsightId: insightId,
+          wizardOpen: true,
+          wizardStep: 0,
+          wizardActions: [],
+          isGeneratingActions: false,
+          actionThinkingSteps: [],
+        });
+      },
+
+      closeWizard: () =>
+        set({
+          wizardOpen: false,
+          selectedInsightId: null,
+          wizardStep: 0,
+          wizardActions: [],
+          isGeneratingActions: false,
+          actionThinkingSteps: [],
+        }),
+
+      setWizardStep: (step) => set({ wizardStep: step }),
+
+      setWizardActions: (actions) => set({ wizardActions: actions }),
+
+      addWizardAction: (action) =>
+        set((state) => ({
+          wizardActions: [...state.wizardActions, action],
+        })),
+
+      setIsGeneratingActions: (generating) =>
+        set({ isGeneratingActions: generating }),
+
+      addActionThinkingStep: (content) =>
+        set((state) => ({
+          actionThinkingSteps: [...state.actionThinkingSteps, content],
+        })),
+
+      clearActionGeneration: () =>
+        set({
+          wizardActions: [],
+          isGeneratingActions: false,
+          actionThinkingSteps: [],
+        }),
+
+      setPlanActions: (actions) => set({ planActions: actions }),
+
+      togglePlanAction: (actionId) =>
+        set((state) => {
+          // Find the action in wizardActions to get full data
+          const wizardAction = state.wizardActions.find((a) => a.id === actionId);
+          const currentPlanAction = state.planActions.find((a) => a.id === actionId);
+          
+          // Determine new added_to_plan state
+          const newAddedToPlan = wizardAction
+            ? !wizardAction.added_to_plan
+            : currentPlanAction
+            ? !currentPlanAction.added_to_plan
+            : true;
+
+          // Update wizardActions
+          const updatedWizardActions = state.wizardActions.map((a) =>
+            a.id === actionId ? { ...a, added_to_plan: newAddedToPlan } : a
+          );
+
+          // Update planActions: add if adding, remove if removing, update if exists
+          let updatedPlanActions: ActionItemResponse[];
+          if (newAddedToPlan) {
+            // Adding: ensure it's in planActions
+            if (currentPlanAction) {
+              // Update existing
+              updatedPlanActions = state.planActions.map((a) =>
+                a.id === actionId ? { ...a, added_to_plan: true } : a
+              );
+            } else if (wizardAction) {
+              // Add new from wizardActions
+              updatedPlanActions = [
+                ...state.planActions,
+                { ...wizardAction, added_to_plan: true },
+              ];
+            } else {
+              // Fallback: update existing if found
+              updatedPlanActions = state.planActions.map((a) =>
+                a.id === actionId ? { ...a, added_to_plan: true } : a
+              );
+            }
+          } else {
+            // Removing: filter out from planActions
+            updatedPlanActions = state.planActions.filter((a) => a.id !== actionId);
+          }
+
+          return {
+            planActions: updatedPlanActions,
+            wizardActions: updatedWizardActions,
+          };
+        }),
     }),
-
-  setWizardStep: (step) => set({ wizardStep: step }),
-
-  setWizardActions: (actions) => set({ wizardActions: actions }),
-
-  addWizardAction: (action) =>
-    set((state) => ({
-      wizardActions: [...state.wizardActions, action],
-    })),
-
-  setIsGeneratingActions: (generating) =>
-    set({ isGeneratingActions: generating }),
-
-  addActionThinkingStep: (content) =>
-    set((state) => ({
-      actionThinkingSteps: [...state.actionThinkingSteps, content],
-    })),
-
-  clearActionGeneration: () =>
-    set({ wizardActions: [], isGeneratingActions: false, actionThinkingSteps: [] }),
-
-  setPlanActions: (actions) => set({ planActions: actions }),
-
-  togglePlanAction: (actionId) =>
-    set((state) => ({
-      planActions: state.planActions.map((a) =>
-        a.id === actionId ? { ...a, added_to_plan: !a.added_to_plan } : a
-      ),
-      wizardActions: state.wizardActions.map((a) =>
-        a.id === actionId ? { ...a, added_to_plan: !a.added_to_plan } : a
-      ),
-    })),
-}));
+    {
+      name: "product-insight-autopilot-action-plan",
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (s) => ({ planActions: s.planActions }),
+    }
+  )
+);
