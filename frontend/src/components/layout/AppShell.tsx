@@ -4,6 +4,7 @@ import { SidePanel } from "./SidePanel";
 import { CommandBar } from "./CommandBar";
 import { useCommandBar } from "@/hooks/useCommandBar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { InsightWizardPanel } from "@/components/dashboard/InsightWizardPanel";
 
 export const AppShell = () => {
   useCommandBar();
@@ -17,6 +18,7 @@ export const AppShell = () => {
             <Outlet />
           </main>
           <SidePanel />
+          <InsightWizardPanel />
         </div>
         <CommandBar />
       </div>

@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useAppStore } from "@/stores/appStore";
 import { useInsightStore } from "@/stores/insightStore";
+import { useActionPlanStore } from "@/stores/actionPlanStore";
 import type { SortBy } from "@/stores/insightStore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,13 +13,14 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sparkles, RefreshCw, ArrowUpDown } from "lucide-react";
+import { Sparkles, RefreshCw, ArrowUpDown, ClipboardList } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useInsights } from "@/hooks/useInsights";
 import { KPIMetrics } from "@/components/dashboard/KPIMetrics";
 import { InsightCard } from "@/components/dashboard/InsightCard";
 import { AlertBanner } from "@/components/dashboard/AlertBanner";
 import { GenerationProgress } from "@/components/dashboard/GenerationProgress";
+import { ActionPlanView } from "@/components/dashboard/ActionPlanView";
 import type { InsightType } from "@/lib/api";
 
 const TYPE_LABELS: Record<InsightType, string> = {
@@ -38,7 +40,9 @@ export const DashboardPage = () => {
   const sortBy = useInsightStore((s) => s.sortBy);
   const setTypeFilter = useInsightStore((s) => s.setTypeFilter);
   const setSortBy = useInsightStore((s) => s.setSortBy);
+  const planActions = useActionPlanStore((s) => s.planActions);
   const navigate = useNavigate();
+  const [dashboardTab, setDashboardTab] = useState<string>("insights");
   const {
     insights,
     kpis,
@@ -126,93 +130,105 @@ export const DashboardPage = () => {
         />
       )}
 
-      {/* Insights Section */}
+      {/* Dashboard Tabs: Insights + Action Plan */}
       {(insights.length > 0 || !isGenerating) && (
-        <div>
+        <Tabs value={dashboardTab} onValueChange={setDashboardTab}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">AI-Generated Insights</h2>
-            <div className="flex items-center gap-2">
-              {insights.length > 0 && (
-                <Badge variant="secondary" className="gap-1">
-                  <Sparkles className="h-3 w-3" />
-                  {insights.length} insights
-                </Badge>
-              )}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-1.5">
-                    <ArrowUpDown className="h-3 w-3" />
-                    Sort
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuRadioGroup
-                    value={sortBy}
-                    onValueChange={(v) => setSortBy(v as SortBy)}
-                  >
-                    <DropdownMenuRadioItem value="impact_score">
-                      Impact Score
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="impact_revenue">
-                      Revenue Impact
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="created_at">
-                      Newest First
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={regenerate}
-                disabled={isGenerating}
-                className="gap-1.5"
-              >
-                <RefreshCw className={`h-3 w-3 ${isGenerating ? "animate-spin" : ""}`} />
-                Regenerate
-              </Button>
-            </div>
-          </div>
+            <TabsList>
+              <TabsTrigger value="insights" className="gap-1.5">
+                <Sparkles className="h-3 w-3" />
+                Insights ({insights.length})
+              </TabsTrigger>
+              <TabsTrigger value="action-plan" className="gap-1.5">
+                <ClipboardList className="h-3 w-3" />
+                Action Plan ({planActions.length})
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Filter tabs */}
-          {insights.length > 0 && existingTypes.size > 1 && (
-            <Tabs
-              value={typeFilter ?? "all"}
-              onValueChange={(v) => setTypeFilter(v === "all" ? null : v)}
-              className="mb-4"
-            >
-              <TabsList>
-                <TabsTrigger value="all">
-                  All ({insights.length})
-                </TabsTrigger>
-                {Array.from(existingTypes.entries()).map(([type, count]) => (
-                  <TabsTrigger key={type} value={type}>
-                    {TYPE_LABELS[type as InsightType] ?? type} ({count})
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          )}
-
-          {insights.length === 0 && !isGenerating && (
-            <div className="text-center py-12 text-muted-foreground">
-              <Sparkles className="h-8 w-8 mx-auto mb-3 opacity-50" />
-              <p className="text-sm">No insights yet.</p>
-              <p className="text-xs mt-1">
-                Click Regenerate to analyze your data with AI.
-              </p>
-            </div>
-          )}
-
-          <div className="columns-1 md:columns-2 xl:columns-3 gap-4 space-y-4">
-            {filteredInsights.map((insight) => (
-              <div key={insight.id} className="break-inside-avoid">
-                <InsightCard insight={insight} />
+            {dashboardTab === "insights" && (
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-1.5">
+                      <ArrowUpDown className="h-3 w-3" />
+                      Sort
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuRadioGroup
+                      value={sortBy}
+                      onValueChange={(v) => setSortBy(v as SortBy)}
+                    >
+                      <DropdownMenuRadioItem value="impact_score">
+                        Impact Score
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="impact_revenue">
+                        Revenue Impact
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="created_at">
+                        Newest First
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={regenerate}
+                  disabled={isGenerating}
+                  className="gap-1.5"
+                >
+                  <RefreshCw className={`h-3 w-3 ${isGenerating ? "animate-spin" : ""}`} />
+                  Regenerate
+                </Button>
               </div>
-            ))}
+            )}
           </div>
-        </div>
+
+          <TabsContent value="insights" className="mt-0">
+            {/* Type filter tabs */}
+            {insights.length > 0 && existingTypes.size > 1 && (
+              <Tabs
+                value={typeFilter ?? "all"}
+                onValueChange={(v) => setTypeFilter(v === "all" ? null : v)}
+                className="mb-4"
+              >
+                <TabsList>
+                  <TabsTrigger value="all">
+                    All ({insights.length})
+                  </TabsTrigger>
+                  {Array.from(existingTypes.entries()).map(([type, count]) => (
+                    <TabsTrigger key={type} value={type}>
+                      {TYPE_LABELS[type as InsightType] ?? type} ({count})
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            )}
+
+            {insights.length === 0 && !isGenerating && (
+              <div className="text-center py-12 text-muted-foreground">
+                <Sparkles className="h-8 w-8 mx-auto mb-3 opacity-50" />
+                <p className="text-sm">No insights yet.</p>
+                <p className="text-xs mt-1">
+                  Click Regenerate to analyze your data with AI.
+                </p>
+              </div>
+            )}
+
+            <div className="columns-1 md:columns-2 xl:columns-3 gap-4 space-y-4">
+              {filteredInsights.map((insight) => (
+                <div key={insight.id} className="break-inside-avoid">
+                  <InsightCard insight={insight} />
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="action-plan" className="mt-0">
+            <ActionPlanView />
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );

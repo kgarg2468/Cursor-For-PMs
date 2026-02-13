@@ -31,7 +31,9 @@
 - [x] KPI grid breakpoint matched (lg → xl)
 
 ## In Progress (Day 4: Feb 12)
-- [ ] Market Graph Simulation (this plan)
+- [x] Market Graph Simulation — 3 templates, node graph UI, 5 result visualizations, SSE streaming
+- [x] Simulation performance fix — Sonnet 4.5 (was Opus), budget_tokens=1024 (was 4000), max_tokens=8000 (was 16000), streamlined prompts
+- [ ] Insights → Simulation workflow (one-click from insight cards)
 
 ## Not Started
 - [ ] Cmd+K AI query execution

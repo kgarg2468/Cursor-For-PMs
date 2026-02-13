@@ -66,7 +66,22 @@ export interface InsightResponse {
   ai_reasoning: string | null;
   impact_score: number | null;
   suggested_questions: string[] | null;
+  prediction: string | null;
+  prediction_detail: string | null;
   dismissed: boolean;
+  created_at: string | null;
+}
+
+export interface ActionItemResponse {
+  id: string;
+  insight_id: string;
+  dataset_id: string;
+  title: string;
+  description: string;
+  priority: "high" | "medium" | "low";
+  effort: "quick_win" | "moderate" | "major";
+  category: "product" | "growth" | "engineering" | "support" | "pricing" | "marketing";
+  added_to_plan: boolean;
   created_at: string | null;
 }
 
@@ -155,6 +170,20 @@ export const insightsApi = {
 
   generateUrl: (datasetId: string) =>
     `${API_BASE}/insights/generate?dataset_id=${datasetId}`,
+
+  generateActionsUrl: (insightId: string) =>
+    `${API_BASE}/insights/${insightId}/actions`,
+
+  listActions: (insightId: string) =>
+    request<ActionItemResponse[]>(`/insights/${insightId}/actions`),
+
+  toggleActionPlan: (actionId: string) =>
+    request<{ added_to_plan: boolean }>(`/insights/actions/${actionId}/plan`, {
+      method: "PATCH",
+    }),
+
+  getActionPlan: (datasetId: string) =>
+    request<ActionItemResponse[]>(`/insights/action-plan?dataset_id=${datasetId}`),
 };
 
 // Simulations endpoints

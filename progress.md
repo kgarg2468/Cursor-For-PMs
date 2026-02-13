@@ -49,40 +49,41 @@
 
 ---
 
-### Day 3 (Feb 11) — Auto-Insight Engine v2 ⬜
+### Day 3 (Feb 11) — Auto-Insight Engine v2 + Design Polish ✅
 
-**Objective:** Expand insight generation to multiple types and add autonomous discovery with priority ranking.
+**Objective:** Expand insight generation to multiple types and polish dashboard UX.
 
-- [ ] Add multiple insight types (trend, anomaly, correlation, segment, opportunity)
-- [ ] Implement autonomous discovery — Claude iterates over data dimensions without prompting
-- [ ] Build priority/severity ranking system for insights
-- [ ] Add insight filtering and sorting UI on dashboard
-- [ ] Polish insight card designs (type-specific icons, color coding)
-- [ ] Add insight persistence and history view
+- [x] Add multiple insight types (8 types: trend, anomaly, correlation, segment, opportunity, etc.)
+- [x] Implement impact scoring and priority ranking for insights
+- [x] Add insight filtering and sorting UI on dashboard
+- [x] Polish insight card designs (type-specific icons, color coding)
+- [x] Masonry grid layout (CSS columns) with responsive breakpoints
+- [x] Charts moved below description (full-width, data-scaled height)
+- [x] Fixed budget_tokens 400 error (1000 → 1024)
+- [x] Side panel chat wired up with multi-turn streaming + pinned context injection
 
-**Deliverable:** Dashboard surfaces a diverse, prioritized set of insights across all key data dimensions.
+**Deliverable:** Dashboard surfaces a diverse, prioritized set of insights with polished card designs and working chat.
 
 ---
 
-### Day 4 (Feb 12) — Market Simulation ⬜
+### Day 4 (Feb 12) — Agentic Simulation Engine 🟡
 
-**Objective:** Build a Monte Carlo simulation engine so PMs can model "what if" scenarios for feature launches and pricing changes.
+**Objective:** Transform the simulation from a passive tool into a proactive agent that suggests strategic interventions and drafts execution plans.
 
-- [ ] Implement Monte Carlo simulation engine (Python — NumPy/SciPy)
-- [ ] Build feature launch simulator with configurable parameters
-- [ ] Add Claude-powered scenario analysis (narrative + quantitative)
-- [ ] Create simulation results API endpoints
-- [ ] Build simulation UI — parameter inputs, run controls
-- [ ] Build results visualization — distribution charts, confidence intervals
+- [x] Build simulation engine with Claude-powered scenario analysis (`simulation_engine.py`)
+- [x] Create 3 simulation templates (SSO Tax, Usage-Based Pricing, Free Tier Expansion) with node maps
+- [ ] Implement "Agentic Triggers" — Insight automatically triggers specific simulation scenarios
+- [ ] Build "Impact Story" UI — Explicit "Status Quo" vs "Opus Strategy" comparison
+- [ ] Implement Artifact Generation — Auto-draft emails, PDFs, and tickets based on simulation results (mocked for speed)
 - [ ] Connect insights to simulation (e.g., "Simulate fixing this churn driver")
 
-**Deliverable:** User can run "what if" simulations and see projected outcomes with confidence intervals and AI narrative.
+**Deliverable:** System proactively suggests "What If" scenarios and provides a complete decision package (Graph + Impact Analysis + Drafted Assets).
 
 ---
 
-### Day 5 (Feb 13) — Polish & Integration ⬜
+### Day 5 (Feb 13) — Integration & Polish ⬜
 
-**Objective:** Wire up the chat interface, integrate insights with simulations, and polish the overall UX.
+**Objective:** Wire up the chat interface, integrate insights with simulations, and polish the overall UX for the "Chief Strategy Officer" feel.
 
 - [ ] Implement chat streaming backend (`/api/chat/stream` SSE endpoint)
 - [ ] Wire side panel chat send functionality
@@ -138,24 +139,22 @@
 | Insight Expand (detailed reasoning) | ✅ Complete | Claude analysis with DB caching + error fallback |
 | Dashboard UI | ✅ Complete | KPIs, InsightCards, AlertBanner, MiniCharts, progress indicators |
 | Command Bar (Cmd+K) | 🟡 Partial | Opens, shows items — no AI query execution yet |
-| Side Panel Chat UI | 🟡 Partial | Renders, pin/unpin works — no send functionality yet |
-| Chat Streaming Backend | ⬜ Not Started | No `/stream` endpoint, no AI responses |
+| Side Panel Chat | ✅ Complete | Multi-turn streaming, pinned context chips, thinking bubbles |
+| Chat Streaming Backend | ✅ Complete | SSE endpoint with multi-turn + pinned context injection |
 | @ Mention Parsing | ⬜ Not Started | No detection or context injection |
-| Monte Carlo Simulation | ⬜ Not Started | No engine, no endpoints |
-| Simulation UI | ⬜ Not Started | Placeholder page only |
+| Agentic Simulation Engine | 🟡 In Progress | Migrating to proactive triggers and artifact generation |
+| Simulation UI | 🟡 Updating | Adding "Impact Story" comparison view |
+| Simulation Performance Fix | ✅ Complete | Sonnet 4.5, budget_tokens=1024, max_tokens=8000, streamlined prompts |
 | Docker | ✅ Complete | Compose + Dockerfiles configured |
 
 ---
 
 ## What's Left to Build (Prioritized)
 
-1. **Auto-Insight Engine v2** — multiple insight types, autonomous discovery, priority ranking
-2. **Monte Carlo simulation engine** — core engine, API, and results UI
-3. **Chat backend** — SSE streaming endpoint, Claude conversation with context
-4. **Chat frontend wiring** — send messages, display streamed responses
-5. **@ mention parsing** — detect in chat input, inject as structured context to Claude
-6. **Command bar AI execution** — run queries from Cmd+K
-7. **Insights → Simulation workflow** — one-click "simulate this" from insight cards
-8. **UX polish** — loading states, skeletons, error handling, dark mode consistency
-9. **Demo preparation** — dataset tuning, script, video recording and editing
-10. **Documentation & submission** — README, architecture diagram, summary
+1.  **Agentic Simulation Workflow** — Proactive triggers, Impact Story UI, Artifact Generation
+2.  **Insights → Simulation Connection** — One-click "Simulate Strategy"
+3.  **@ mention parsing** — detect in chat input, inject as structured context to Claude
+4.  **Command bar AI execution** — run queries from Cmd+K
+5.  **UX polish** — loading states, skeletons, error handling, dark mode consistency
+6.  **Demo preparation** — dataset tuning, script, video recording and editing
+7.  **Documentation & submission** — README, architecture diagram, summary

@@ -4,13 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Pin, ChevronDown, ChevronUp, Loader2, MessageSquare,
+  Pin, ChevronDown, ChevronUp, Loader2, MessageSquare, ArrowRight,
   AlertTriangle, Lightbulb, TrendingUp, Activity, Link2, Users, Boxes, DollarSign,
 } from "lucide-react";
 import type { InsightResponse, InsightType } from "@/lib/api";
 import { insightsApi } from "@/lib/api";
 import { useChatStore } from "@/stores/chatStore";
 import { useAppStore } from "@/stores/appStore";
+import { useActionPlanStore } from "@/stores/actionPlanStore";
 import { InsightChart } from "./InsightChart";
 
 interface InsightCardProps {
@@ -129,6 +130,7 @@ export const InsightCard = ({ insight }: InsightCardProps) => {
   const pinCard = useChatStore((s) => s.pinCard);
   const setDraftMessage = useChatStore((s) => s.setDraftMessage);
   const setSidePanelOpen = useAppStore((s) => s.setSidePanelOpen);
+  const openWizard = useActionPlanStore((s) => s.openWizard);
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoadingReasoning, setIsLoadingReasoning] = useState(false);
@@ -184,6 +186,13 @@ export const InsightCard = ({ insight }: InsightCardProps) => {
           <p className="text-xs text-muted-foreground mt-1">{insight.description}</p>
         )}
 
+        {/* Prediction preview */}
+        {insight.prediction && (
+          <p className="text-[10px] text-primary/70 mt-1 italic truncate">
+            {insight.prediction}
+          </p>
+        )}
+
         {/* Chart — full width below description */}
         {chartData && (
           <div className="mt-3">
@@ -217,6 +226,15 @@ export const InsightCard = ({ insight }: InsightCardProps) => {
           </div>
 
           <div className="flex items-center gap-0.5 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={() => openWizard(insight.id)}
+              title="Explore insight"
+            >
+              <ArrowRight className="h-3 w-3" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"

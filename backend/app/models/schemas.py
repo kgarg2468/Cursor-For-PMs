@@ -37,8 +37,27 @@ class InsightResponse(BaseModel):
     ai_reasoning: Optional[str] = None
     impact_score: Optional[float] = None
     suggested_questions: Optional[list[str]] = None
+    prediction: Optional[str] = None
+    prediction_detail: Optional[str] = None
     dismissed: bool = False
     created_at: Optional[str] = None
+
+
+class ActionItemResponse(BaseModel):
+    id: str
+    insight_id: str
+    dataset_id: str
+    title: str
+    description: str
+    priority: str
+    effort: str
+    category: str
+    added_to_plan: bool = False
+    created_at: Optional[str] = None
+
+
+class AddToPlanRequest(BaseModel):
+    action_ids: list[str]
 
 
 class ExpandInsightResponse(BaseModel):

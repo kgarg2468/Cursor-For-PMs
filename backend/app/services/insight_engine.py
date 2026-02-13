@@ -35,6 +35,9 @@ IMPORTANT: Return your analysis as a JSON array sorted by impact_score descendin
   "priority": "critical" | "high" | "medium" | "low",
   "title": "Short descriptive title (max 60 chars)",
   "description": "One-line summary, max 15 words, no period (like a news headline)",
+  "prediction": "Predictive headline — what will happen if nothing changes (max 80 chars)",
+  "prediction_detail": "2-3 sentences explaining the prediction with supporting evidence from the data",
+  "ai_reasoning": "Structured markdown analysis (~150 words) with sections: **Root Cause:** why this is happening, **Key Evidence:** 2-3 bullet points with specific numbers, **Recommendations:** 2-3 concrete next steps",
   "impact_revenue": <estimated monthly revenue impact as a number (positive = opportunity, negative = risk), or null>,
   "impact_customers": <number of customers affected, or null>,
   "confidence": <0.0 to 1.0>,
@@ -78,6 +81,145 @@ Concrete next steps the product/growth team should take.
 What could go wrong, caveats, and things to watch.
 
 Keep the total response between 200-400 words. Be specific and actionable. Use numbers from the data wherever possible. Return ONLY the markdown, no code fences."""
+
+
+ACTION_SYSTEM_PROMPT = """You are a senior product strategist. Given an insight and its context, generate 3-5 concrete action items that a product team can execute.
+
+Each action item must have:
+- "title": Short imperative title (max 60 chars), e.g. "Launch win-back email campaign for churning Enterprise accounts"
+- "description": 2-3 sentences explaining what to do, expected outcome, and how to measure success
+- "priority": "high" | "medium" | "low"
+- "effort": "quick_win" | "moderate" | "major"
+- "category": "product" | "growth" | "engineering" | "support" | "pricing" | "marketing"
+
+Rules:
+1. At least one action must be a "quick_win" (implementable in < 1 week)
+2. Actions should be ordered by priority (high first)
+3. Be specific — reference actual segments, features, or metrics from the insight
+4. Each action should be independently actionable
+
+Return ONLY a JSON array of action items, no markdown, no code fences."""
+
+
+async def generate_actions(insight_id: str) -> AsyncGenerator[dict, None]:
+    """Generate action items for a specific insight. Yields SSE-ready event dicts."""
+    db = await get_db()
+    try:
+        cursor = await db.execute(
+            "SELECT id, dataset_id, type, priority, title, description, "
+            "impact_revenue, impact_customers, confidence, ai_reasoning, "
+            "prediction, prediction_detail FROM insights WHERE id = ?",
+            (insight_id,),
+        )
+        row = await cursor.fetchone()
+        if not row:
+            yield {"type": "error", "data": {"message": "Insight not found"}}
+            return
+
+        dataset_id = row[1]
+    finally:
+        await db.close()
+
+    yield {"type": "progress", "data": {"step": "Loading context..."}}
+
+    summary = await data_processor.get_dataset_summary(dataset_id)
+
+    yield {"type": "progress", "data": {"step": "Generating action items..."}}
+
+    user_prompt = f"""Generate action items for this insight:
+
+Title: {row[4]}
+Type: {row[2]}
+Priority: {row[3]}
+Description: {row[5]}
+Prediction: {row[10] or 'N/A'}
+Prediction Detail: {row[11] or 'N/A'}
+AI Reasoning: {row[9] or 'N/A'}
+Revenue Impact: {row[6] or 'N/A'}
+Customers Affected: {row[7] or 'N/A'}
+Confidence: {row[8] or 'N/A'}
+
+Dataset context:
+- Total rows: {summary['row_count']}
+- Columns: {json.dumps(summary['columns'])}
+- Key stats: {json.dumps(summary['numeric_stats'])}"""
+
+    full_text = ""
+    thinking_buffer = ""
+    async for event in claude_client.stream_completion(
+        system_prompt=ACTION_SYSTEM_PROMPT,
+        user_prompt=user_prompt,
+        budget_tokens=1500,
+    ):
+        if event["type"] == "thinking":
+            thinking_buffer += event["content"]
+            if len(thinking_buffer) > 80:
+                yield {"type": "thinking", "data": {"content": thinking_buffer}}
+                thinking_buffer = ""
+        elif event["type"] == "text":
+            full_text += event["content"]
+
+    if thinking_buffer:
+        yield {"type": "thinking", "data": {"content": thinking_buffer}}
+
+    # Parse actions
+    try:
+        cleaned = full_text.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.split("\n", 1)[1] if "\n" in cleaned else cleaned[3:]
+        if cleaned.endswith("```"):
+            cleaned = cleaned[:-3]
+        cleaned = cleaned.strip()
+
+        actions_data = json.loads(cleaned)
+        if not isinstance(actions_data, list):
+            actions_data = [actions_data]
+    except json.JSONDecodeError:
+        yield {"type": "error", "data": {"message": "Failed to parse action items"}}
+        return
+
+    # Save to DB and yield each action
+    db = await get_db()
+    try:
+        for item in actions_data:
+            action_id = str(uuid.uuid4())
+            await db.execute(
+                """INSERT INTO action_items
+                   (id, insight_id, dataset_id, title, description, priority, effort, category)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    action_id,
+                    insight_id,
+                    dataset_id,
+                    item.get("title", "Untitled Action"),
+                    item.get("description", ""),
+                    item.get("priority", "medium"),
+                    item.get("effort", "moderate"),
+                    item.get("category", "product"),
+                ),
+            )
+
+            yield {
+                "type": "action",
+                "data": {
+                    "id": action_id,
+                    "insight_id": insight_id,
+                    "dataset_id": dataset_id,
+                    "title": item.get("title", "Untitled Action"),
+                    "description": item.get("description", ""),
+                    "priority": item.get("priority", "medium"),
+                    "effort": item.get("effort", "moderate"),
+                    "category": item.get("category", "product"),
+                    "added_to_plan": False,
+                    "created_at": None,
+                },
+            }
+
+        await db.commit()
+    finally:
+        await db.close()
+
+    yield {"type": "complete", "data": {"count": len(actions_data)}}
 
 
 async def generate_expanded_reasoning(insight_row: dict, dataset_id: str) -> str:
@@ -158,7 +300,7 @@ Find the most impactful insights — anomalies, correlations, segment behaviors,
     async for event in claude_client.stream_completion(
         system_prompt=SYSTEM_PROMPT,
         user_prompt=user_prompt,
-        budget_tokens=2000,
+        budget_tokens=2500,
     ):
         if event["type"] == "thinking":
             thinking_buffer += event["content"]
@@ -203,8 +345,9 @@ Find the most impactful insights — anomalies, correlations, segment behaviors,
                 """INSERT INTO insights
                    (id, dataset_id, type, priority, title, description,
                     impact_revenue, impact_customers, confidence, chart_data,
-                    ai_reasoning, impact_score, suggested_questions)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    ai_reasoning, impact_score, suggested_questions,
+                    prediction, prediction_detail)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     insight_id,
                     dataset_id,
@@ -216,9 +359,11 @@ Find the most impactful insights — anomalies, correlations, segment behaviors,
                     item.get("impact_customers"),
                     item.get("confidence"),
                     chart_data_json,
-                    None,
+                    item.get("ai_reasoning"),
                     item.get("impact_score"),
                     json.dumps(item.get("suggested_questions", [])),
+                    item.get("prediction"),
+                    item.get("prediction_detail"),
                 ),
             )
 
@@ -235,9 +380,11 @@ Find the most impactful insights — anomalies, correlations, segment behaviors,
                     "impact_customers": item.get("impact_customers"),
                     "confidence": item.get("confidence"),
                     "chart_data": item.get("chart_data"),
-                    "ai_reasoning": None,
+                    "ai_reasoning": item.get("ai_reasoning"),
                     "impact_score": item.get("impact_score"),
                     "suggested_questions": item.get("suggested_questions", []),
+                    "prediction": item.get("prediction"),
+                    "prediction_detail": item.get("prediction_detail"),
                     "dismissed": False,
                     "created_at": None,
                 },

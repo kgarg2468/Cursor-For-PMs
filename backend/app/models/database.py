@@ -79,11 +79,30 @@ async def init_db() -> None:
         """)
         await db.commit()
 
+        # Create action_items table
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS action_items (
+                id TEXT PRIMARY KEY,
+                insight_id TEXT REFERENCES insights(id) ON DELETE CASCADE,
+                dataset_id TEXT REFERENCES datasets(id) ON DELETE CASCADE,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                priority TEXT NOT NULL,
+                effort TEXT NOT NULL,
+                category TEXT NOT NULL,
+                added_to_plan INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        await db.commit()
+
         # Add new columns (safe for existing data — ignores if already present)
         for alter_sql in [
             "ALTER TABLE insights ADD COLUMN impact_score REAL",
             "ALTER TABLE insights ADD COLUMN suggested_questions TEXT",
             "ALTER TABLE simulations ADD COLUMN template_id TEXT",
+            "ALTER TABLE insights ADD COLUMN prediction TEXT",
+            "ALTER TABLE insights ADD COLUMN prediction_detail TEXT",
         ]:
             try:
                 await db.execute(alter_sql)

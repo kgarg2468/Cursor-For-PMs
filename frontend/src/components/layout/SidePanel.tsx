@@ -19,6 +19,7 @@ import { useAppStore } from "@/stores/appStore";
 import { useChatStore } from "@/stores/chatStore";
 import { useInsightStore } from "@/stores/insightStore";
 import { useSimulationStore } from "@/stores/simulationStore";
+import { useActionPlanStore } from "@/stores/actionPlanStore";
 import { useChat } from "@/hooks/useChat";
 import { cn } from "@/lib/utils";
 
@@ -437,6 +438,16 @@ export const SidePanel = () => {
     const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
     shouldAutoScrollRef.current = distFromBottom < 50;
   }, [shouldAutoScrollRef]);
+
+  const closeWizard = useActionPlanStore((s) => s.closeWizard);
+  const wizardOpen = useActionPlanStore((s) => s.wizardOpen);
+
+  // Close wizard when chat panel opens (mutual exclusivity)
+  useEffect(() => {
+    if (sidePanelOpen && wizardOpen) {
+      closeWizard();
+    }
+  }, [sidePanelOpen, wizardOpen, closeWizard]);
 
   if (!sidePanelOpen) return null;
 
