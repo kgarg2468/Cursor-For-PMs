@@ -90,14 +90,54 @@ export const useActionPlanStore = create<ActionPlanState>()(
       setPlanActions: (actions) => set({ planActions: actions }),
 
       togglePlanAction: (actionId) =>
-        set((state) => ({
-          planActions: state.planActions.map((a) =>
-            a.id === actionId ? { ...a, added_to_plan: !a.added_to_plan } : a
-          ),
-          wizardActions: state.wizardActions.map((a) =>
-            a.id === actionId ? { ...a, added_to_plan: !a.added_to_plan } : a
-          ),
-        })),
+        set((state) => {
+          // Find the action in wizardActions to get full data
+          const wizardAction = state.wizardActions.find((a) => a.id === actionId);
+          const currentPlanAction = state.planActions.find((a) => a.id === actionId);
+          
+          // Determine new added_to_plan state
+          const newAddedToPlan = wizardAction
+            ? !wizardAction.added_to_plan
+            : currentPlanAction
+            ? !currentPlanAction.added_to_plan
+            : true;
+
+          // Update wizardActions
+          const updatedWizardActions = state.wizardActions.map((a) =>
+            a.id === actionId ? { ...a, added_to_plan: newAddedToPlan } : a
+          );
+
+          // Update planActions: add if adding, remove if removing, update if exists
+          let updatedPlanActions: ActionItemResponse[];
+          if (newAddedToPlan) {
+            // Adding: ensure it's in planActions
+            if (currentPlanAction) {
+              // Update existing
+              updatedPlanActions = state.planActions.map((a) =>
+                a.id === actionId ? { ...a, added_to_plan: true } : a
+              );
+            } else if (wizardAction) {
+              // Add new from wizardActions
+              updatedPlanActions = [
+                ...state.planActions,
+                { ...wizardAction, added_to_plan: true },
+              ];
+            } else {
+              // Fallback: update existing if found
+              updatedPlanActions = state.planActions.map((a) =>
+                a.id === actionId ? { ...a, added_to_plan: true } : a
+              );
+            }
+          } else {
+            // Removing: filter out from planActions
+            updatedPlanActions = state.planActions.filter((a) => a.id !== actionId);
+          }
+
+          return {
+            planActions: updatedPlanActions,
+            wizardActions: updatedWizardActions,
+          };
+        }),
     }),
     {
       name: "product-insight-autopilot-action-plan",
