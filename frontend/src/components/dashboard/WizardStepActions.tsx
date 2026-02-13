@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Loader2, Zap, CheckCircle2 } from "lucide-react";
+import { Loader2, Zap, CheckCircle2, FlaskConical } from "lucide-react";
 import { useActionGeneration } from "@/hooks/useActionGeneration";
 import { useActionPlanStore } from "@/stores/actionPlanStore";
-import { insightsApi } from "@/lib/api";
+import { useSimulationStore } from "@/stores/simulationStore";
+import { insightsApi, simulationsApi } from "@/lib/api";
 import { ActionCard } from "./ActionCard";
 
 interface WizardStepActionsProps {
@@ -11,6 +13,7 @@ interface WizardStepActionsProps {
 }
 
 export const WizardStepActions = ({ insightId }: WizardStepActionsProps) => {
+  const navigate = useNavigate();
   const {
     wizardActions,
     isGeneratingActions,
@@ -20,9 +23,11 @@ export const WizardStepActions = ({ insightId }: WizardStepActionsProps) => {
   } = useActionGeneration();
 
   const togglePlanAction = useActionPlanStore((s) => s.togglePlanAction);
+  const setAgenticMode = useSimulationStore((s) => s.setAgenticMode);
   const [initialized, setInitialized] = useState(false);
   const [savingPlan, setSavingPlan] = useState(false);
   const [savedCount, setSavedCount] = useState(0);
+  const [isTriggeringSimulation, setIsTriggeringSimulation] = useState(false);
   const initRef = useRef(false);
 
   // On mount: check cached → if none, generate
@@ -68,6 +73,18 @@ export const WizardStepActions = ({ insightId }: WizardStepActionsProps) => {
     setSavingPlan(false);
   };
 
+  const handleRunSimulation = () => {
+    setIsTriggeringSimulation(true);
+    try {
+      setAgenticMode(true, insightId);
+      navigate(`/simulations?mode=agentic&insightId=${insightId}`);
+    } catch (error) {
+      console.error("Failed to trigger simulation:", error);
+    } finally {
+      setIsTriggeringSimulation(false);
+    }
+  };
+
   const thinkingText = actionThinkingSteps.join("");
   const addedCount = wizardActions.filter((a) => a.added_to_plan).length;
   const notAddedCount = wizardActions.length - addedCount;
@@ -75,11 +92,32 @@ export const WizardStepActions = ({ insightId }: WizardStepActionsProps) => {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-        <div className="flex items-center gap-2 mb-1">
-          <Zap className="h-4 w-4 text-primary" />
-          <span className="text-xs font-medium text-primary uppercase tracking-wider">
-            Recommended Actions
-          </span>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Zap className="h-4 w-4 text-primary" />
+            <span className="text-xs font-medium text-primary uppercase tracking-wider">
+              Recommended Actions
+            </span>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-2"
+            onClick={handleRunSimulation}
+            disabled={isTriggeringSimulation}
+          >
+            {isTriggeringSimulation ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Starting...
+              </>
+            ) : (
+              <>
+                <FlaskConical className="h-3.5 w-3.5" />
+                Run Strategic Simulation
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Thinking animation */}

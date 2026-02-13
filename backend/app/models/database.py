@@ -96,6 +96,20 @@ async def init_db() -> None:
         """)
         await db.commit()
 
+        # Create agentic_simulations table
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS agentic_simulations (
+                id TEXT PRIMARY KEY,
+                insight_id TEXT REFERENCES insights(id) ON DELETE CASCADE,
+                scenarios_json TEXT NOT NULL,
+                comparison_data TEXT NOT NULL,
+                winning_scenario_id TEXT,
+                artifacts_json TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        await db.commit()
+
         # Add new columns (safe for existing data — ignores if already present)
         for alter_sql in [
             "ALTER TABLE insights ADD COLUMN impact_score REAL",

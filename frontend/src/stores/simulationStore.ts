@@ -28,6 +28,14 @@ interface SimulationState {
   varCard: VaRCardData | null;
   summary: string | null;
 
+  // Agentic simulation state
+  agenticMode: boolean;
+  insightId: string | null;
+  scenarios: Array<{ id: string; name: string; results: any }>;
+  selectedScenario: string | null;
+  comparisonData: any | null;
+  artifacts: Array<{ type: string; content: string; title: string; metadata?: any }>;
+
   selectTemplate: (template: SimTemplate) => void;
   setNodeParam: (nodeId: string, paramKey: string, value: number) => void;
   setActiveTab: (tab: SimTab) => void;
@@ -46,6 +54,13 @@ interface SimulationState {
 
   clearResults: () => void;
   reset: () => void;
+
+  // Agentic simulation actions
+  setAgenticMode: (mode: boolean, insightId?: string) => void;
+  setScenarios: (scenarios: Array<{ id: string; name: string; results: any }>) => void;
+  setSelectedScenario: (scenarioId: string | null) => void;
+  setComparisonData: (data: any) => void;
+  setArtifacts: (artifacts: Array<{ type: string; content: string; title: string; metadata?: any }>) => void;
 }
 
 const EMPTY_RESULTS = {
@@ -139,5 +154,23 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       simulationId: null,
       inspectedNodeId: null,
       ...EMPTY_RESULTS,
+      agenticMode: false,
+      insightId: null,
+      scenarios: [],
+      selectedScenario: null,
+      comparisonData: null,
+      artifacts: [],
     }),
+
+  setAgenticMode: (mode, insightId) =>
+    set({
+      agenticMode: mode,
+      insightId: insightId || null,
+      activeTab: "results",
+    }),
+
+  setScenarios: (scenarios) => set({ scenarios }),
+  setSelectedScenario: (scenarioId) => set({ selectedScenario: scenarioId }),
+  setComparisonData: (data) => set({ comparisonData: data }),
+  setArtifacts: (artifacts) => set({ artifacts }),
 }));

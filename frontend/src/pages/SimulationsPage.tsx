@@ -1,3 +1,4 @@
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FlaskConical, Play, Loader2, Sparkles } from "lucide-react";
@@ -7,6 +8,7 @@ import { TemplatePicker } from "@/components/simulation/TemplatePicker";
 import { SimulationCanvas } from "@/components/simulation/SimulationCanvas";
 import { NodeInspector } from "@/components/simulation/NodeInspector";
 import { SimulationProgress } from "@/components/simulation/SimulationProgress";
+import { AgenticSimulationView } from "@/components/simulation/AgenticSimulationView";
 import { FanChart } from "@/components/simulation/results/FanChart";
 import { TornadoChart } from "@/components/simulation/results/TornadoChart";
 import { HistogramChart } from "@/components/simulation/results/HistogramChart";
@@ -15,9 +17,18 @@ import { VaRCard } from "@/components/simulation/results/VaRCard";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const SimulationsPage = () => {
+  const [searchParams] = useSearchParams();
+  const agenticMode = searchParams.get("mode") === "agentic";
+  const agenticModeFromStore = useSimulationStore((s) => s.agenticMode);
+  
   const selectedTemplate = useSimulationStore((s) => s.selectedTemplate);
   const activeTab = useSimulationStore((s) => s.activeTab);
   const setActiveTab = useSimulationStore((s) => s.setActiveTab);
+  
+  // Show agentic view if in agentic mode
+  if (agenticMode || agenticModeFromStore) {
+    return <AgenticSimulationView />;
+  }
 
   const {
     isRunning,

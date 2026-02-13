@@ -197,6 +197,18 @@ export const simulationsApi = {
     `${API_BASE}/simulations/run?dataset_id=${datasetId}&feature_name=${encodeURIComponent(featureName)}`,
 
   runGraphUrl: () => `${API_BASE}/simulations/run-graph`,
+
+  triggerAgenticUrl: () => `${API_BASE}/simulations/agentic/trigger`,
+
+  getAgentic: (insightId: string) =>
+    request<{
+      id: string;
+      scenarios: any[];
+      comparison_data: any;
+      winning_scenario_id: string;
+      artifacts: any[];
+      created_at: string;
+    }>(`/simulations/agentic/${insightId}`),
 };
 
 // Chat endpoints
