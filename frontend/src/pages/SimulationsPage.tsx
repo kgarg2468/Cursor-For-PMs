@@ -25,9 +25,13 @@ export const SimulationsPage = () => {
   const activeTab = useSimulationStore((s) => s.activeTab);
   const setActiveTab = useSimulationStore((s) => s.setActiveTab);
   
-  // Show agentic view if in agentic mode
+  // Show agentic view if in agentic mode (full-width container with background)
   if (agenticMode || agenticModeFromStore) {
-    return <AgenticSimulationView />;
+    return (
+      <div className="min-h-full w-full bg-background">
+        <AgenticSimulationView />
+      </div>
+    );
   }
 
   const {

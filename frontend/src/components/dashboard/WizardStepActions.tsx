@@ -5,7 +5,7 @@ import { Loader2, Zap, CheckCircle2, FlaskConical } from "lucide-react";
 import { useActionGeneration } from "@/hooks/useActionGeneration";
 import { useActionPlanStore } from "@/stores/actionPlanStore";
 import { useSimulationStore } from "@/stores/simulationStore";
-import { insightsApi, simulationsApi } from "@/lib/api";
+import { insightsApi } from "@/lib/api";
 import { ActionCard } from "./ActionCard";
 
 interface WizardStepActionsProps {
@@ -23,6 +23,7 @@ export const WizardStepActions = ({ insightId }: WizardStepActionsProps) => {
   } = useActionGeneration();
 
   const togglePlanAction = useActionPlanStore((s) => s.togglePlanAction);
+  const closeWizard = useActionPlanStore((s) => s.closeWizard);
   const setAgenticMode = useSimulationStore((s) => s.setAgenticMode);
   const [initialized, setInitialized] = useState(false);
   const [savingPlan, setSavingPlan] = useState(false);
@@ -77,6 +78,7 @@ export const WizardStepActions = ({ insightId }: WizardStepActionsProps) => {
     setIsTriggeringSimulation(true);
     try {
       setAgenticMode(true, insightId);
+      closeWizard(); // Close wizard so simulations page gets full width
       navigate(`/simulations?mode=agentic&insightId=${insightId}`);
     } catch (error) {
       console.error("Failed to trigger simulation:", error);

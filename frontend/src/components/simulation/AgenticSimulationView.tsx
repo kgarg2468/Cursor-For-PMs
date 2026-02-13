@@ -14,8 +14,6 @@ import { ArtifactPreview } from "./ArtifactPreview";
 export const AgenticSimulationView = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const insightId = searchParams.get("insightId");
-
   const {
     scenarios,
     selectedScenario,
@@ -24,6 +22,7 @@ export const AgenticSimulationView = () => {
     isRunning,
     progress,
     thinkingSteps,
+    insightId: insightIdFromStore,
     setScenarios,
     setSelectedScenario,
     setComparisonData,
@@ -32,6 +31,8 @@ export const AgenticSimulationView = () => {
     addProgress,
     addThinkingStep,
   } = useSimulationStore();
+  const insightIdFromUrl = searchParams.get("insightId");
+  const insightId = insightIdFromUrl || insightIdFromStore;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -159,15 +160,18 @@ export const AgenticSimulationView = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div className="min-h-full w-full bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading simulation...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4">
+      <div className="min-h-full w-full bg-background flex flex-col items-center justify-center gap-4 p-6">
         <p className="text-sm text-destructive">{error}</p>
         <Button variant="outline" onClick={() => navigate("/simulations")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -181,7 +185,7 @@ export const AgenticSimulationView = () => {
   const baselineFanChart = comparisonData?.baseline?.fan_chart;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="min-h-full w-full bg-background flex flex-col">
       {/* Header */}
       <div className="border-b border-border px-6 py-4 shrink-0">
         <div className="flex items-center justify-between mb-4">
@@ -220,7 +224,7 @@ export const AgenticSimulationView = () => {
       {/* Split-screen comparison */}
       <div className="flex-1 overflow-y-auto p-6">
         {isRunning && scenarios.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="min-h-[400px] w-full bg-background flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <div className="text-center">
               <h3 className="text-sm font-medium mb-1">Generating scenarios...</h3>
