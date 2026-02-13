@@ -27,6 +27,8 @@ interface ActionPlanState {
   addActionThinkingStep: (content: string) => void;
   clearActionGeneration: () => void;
   setPlanActions: (actions: ActionItemResponse[]) => void;
+  /** Add multiple actions to the plan (e.g. "Add All"). Updates both planActions and wizardActions flags. */
+  addActionsToPlan: (actions: ActionItemResponse[]) => void;
   togglePlanAction: (actionId: string) => void;
 }
 
@@ -88,6 +90,24 @@ export const useActionPlanStore = create<ActionPlanState>()(
         }),
 
       setPlanActions: (actions) => set({ planActions: actions }),
+
+      addActionsToPlan: (actions) =>
+        set((state) => {
+          const toAdd = actions.filter(
+            (a) => !state.planActions.some((p) => p.id === a.id)
+          );
+          const withAdded = toAdd.map((a) => ({ ...a, added_to_plan: true }));
+          const updatedPlanActions = [...state.planActions, ...withAdded];
+          const updatedWizardActions = state.wizardActions.map((w) =>
+            toAdd.some((a) => a.id === w.id)
+              ? { ...w, added_to_plan: true }
+              : w
+          );
+          return {
+            planActions: updatedPlanActions,
+            wizardActions: updatedWizardActions,
+          };
+        }),
 
       togglePlanAction: (actionId) =>
         set((state) => {

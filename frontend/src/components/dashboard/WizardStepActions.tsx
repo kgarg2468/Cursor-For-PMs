@@ -23,6 +23,7 @@ export const WizardStepActions = ({ insightId }: WizardStepActionsProps) => {
   } = useActionGeneration();
 
   const togglePlanAction = useActionPlanStore((s) => s.togglePlanAction);
+  const addActionsToPlan = useActionPlanStore((s) => s.addActionsToPlan);
   const closeWizard = useActionPlanStore((s) => s.closeWizard);
   const setAgenticMode = useSimulationStore((s) => s.setAgenticMode);
   const [initialized, setInitialized] = useState(false);
@@ -60,14 +61,16 @@ export const WizardStepActions = ({ insightId }: WizardStepActionsProps) => {
     if (toAdd.length === 0) return;
 
     setSavingPlan(true);
+    // Update store immediately so Action Plan tab shows items right away
+    addActionsToPlan(toAdd);
     let count = 0;
     for (const action of toAdd) {
       try {
         await insightsApi.toggleActionPlan(action.id);
-        togglePlanAction(action.id);
         count++;
       } catch {
-        // Skip failures
+        // Revert this action in store on API failure
+        togglePlanAction(action.id);
       }
     }
     setSavedCount(count);

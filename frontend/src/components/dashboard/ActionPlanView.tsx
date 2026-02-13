@@ -31,8 +31,17 @@ export const ActionPlanView = () => {
     setIsLoading(true);
     insightsApi
       .getActionPlan(activeDataset.id)
-      .then(setPlanActions)
-      .catch(() => setPlanActions([]))
+      .then((actions) => {
+        // Don't overwrite a non-empty plan with empty API response (e.g. after "Add All" before refetch)
+        const current = useActionPlanStore.getState().planActions;
+        if (actions.length > 0 || current.length === 0) {
+          setPlanActions(actions);
+        }
+      })
+      .catch(() => {
+        const current = useActionPlanStore.getState().planActions;
+        if (current.length === 0) setPlanActions([]);
+      })
       .finally(() => setIsLoading(false));
   }, [activeDataset, setPlanActions]);
 
