@@ -29,7 +29,18 @@ Return a JSON array with exactly 3 scenarios. Each scenario must have:
       "data": {
         "label": "Node Label",
         "subtitle": "Brief description",
-        "icon": "IconName"
+        "icon": "IconName",
+        "params": [
+          {
+            "key": "param_key_snake_case",
+            "label": "Human-readable label",
+            "type": "currency" | "percentage" | "slider" | "number" | "months",
+            "default": number,
+            "min": number,
+            "max": number,
+            "step": number
+          }
+        ]
       }
     },
     ...
@@ -40,8 +51,7 @@ Return a JSON array with exactly 3 scenarios. Each scenario must have:
   ],
   "node_params": {
     "node-id": {
-      "param-key": value (number),
-      ...
+      "param_key": value (number, must match keys in data.params)
     }
   },
   "rationale": "Why this strategy addresses the insight"
@@ -52,7 +62,12 @@ Template types guide:
 - "revenue": Focus on increasing revenue (pricing changes, upsells, new tiers)
 - "feature": Focus on product investments (new features, integrations, capabilities)
 
-Keep node structures simple (3-5 nodes max). Use realistic parameter values based on the insight context.
+Param types: "currency" (dollars), "percentage" (0-100), "slider" (numeric scale), "number" (integer or float), "months" (time horizon).
+- source nodes: typically have baseline params (mrr, churn_rate, seat_price, etc.) with sensible min/max/step.
+- modifier nodes: have intervention params (discount_pct, conversion_rate, etc.).
+- sink nodes: leave "params" as empty array [].
+
+Vary graph structure: each scenario can have 3 to 8+ nodes and different topologies (linear, diamond, multi-branch). Use position x,y to lay out left-to-right (e.g. source ~50-100, modifiers ~300-400, sink ~600-700). Ensure node_params keys match the "key" field in each node's data.params; default values should match data.params[].default.
 Return ONLY the JSON array, no markdown, no code fences."""
 
 
@@ -149,10 +164,59 @@ Generate 3 distinct scenarios that address this insight. Each scenario should pr
             if "id" not in scenario:
                 scenario["id"] = f"scenario-{i+1}"
         
+        # Normalize: ensure every node has data.params and node_params is aligned
+        for scenario in scenarios:
+            _normalize_scenario_params(scenario)
+        
         return scenarios
     except (json.JSONDecodeError, ValueError) as e:
         # Fallback: return default scenarios
         return _get_fallback_scenarios(insight_data)
+
+
+def _normalize_scenario_params(scenario: Dict[str, Any]) -> None:
+    """Ensure every node has data.params (ParamDef-style) and node_params matches."""
+    node_params = scenario.get("node_params") or {}
+    node_structure = scenario.get("node_structure") or []
+
+    for node in node_structure:
+        node_id = node.get("id", "")
+        data = node.get("data") or {}
+        params_defs = data.get("params")
+
+        if not isinstance(params_defs, list):
+            params_defs = []
+
+        # Build params from node_params if we have values but no defs
+        if not params_defs and node_id in node_params:
+            flat = node_params[node_id]
+            for key, value in flat.items():
+                params_defs.append({
+                    "key": key,
+                    "label": key.replace("_", " ").title(),
+                    "type": "number",
+                    "default": float(value) if isinstance(value, (int, float)) else 0,
+                    "min": 0,
+                    "max": 100 if "pct" in key or "rate" in key else 1000000,
+                    "step": 1,
+                })
+
+        # Sync node_params from params defs (ensure every param key has a value)
+        if params_defs:
+            if node_id not in node_params:
+                node_params[node_id] = {}
+            for p in params_defs:
+                if isinstance(p, dict) and "key" in p:
+                    key = p["key"]
+                    if key not in node_params[node_id]:
+                        node_params[node_id][key] = p.get("default", 0)
+
+        # Always set data.params so every node is normalized (e.g. sink nodes get [])
+        data["params"] = params_defs
+        node["data"] = data
+
+    scenario["node_params"] = node_params
+    scenario["node_structure"] = node_structure
 
 
 def _get_fallback_scenarios(insight_data: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -168,10 +232,10 @@ def _get_fallback_scenarios(insight_data: Dict[str, Any]) -> List[Dict[str, Any]
                 "description": "Targeted email campaign with discount offers for at-risk customers",
                 "template_type": "retention",
                 "node_structure": [
-                    {"id": "baseline", "type": "source", "position": {"x": 50, "y": 180}, "data": {"label": "Current State", "subtitle": "Baseline metrics", "icon": "BarChart"}},
-                    {"id": "campaign", "type": "modifier", "position": {"x": 350, "y": 100}, "data": {"label": "Win-Back Campaign", "subtitle": "Email + discount", "icon": "Mail"}},
-                    {"id": "churn-reduction", "type": "modifier", "position": {"x": 350, "y": 260}, "data": {"label": "Churn Reduction", "subtitle": "Retention impact", "icon": "TrendingDown"}},
-                    {"id": "revenue-impact", "type": "sink", "position": {"x": 650, "y": 180}, "data": {"label": "Revenue Impact", "subtitle": "Net change", "icon": "DollarSign"}},
+                    {"id": "baseline", "type": "source", "position": {"x": 50, "y": 180}, "data": {"label": "Current State", "subtitle": "Baseline metrics", "icon": "BarChart", "params": [{"key": "churn_rate", "label": "Churn Rate %", "type": "percentage", "default": 8.0, "min": 0, "max": 50, "step": 1}, {"key": "mrr", "label": "MRR ($)", "type": "currency", "default": 100000, "min": 10000, "max": 1000000, "step": 10000}]}},
+                    {"id": "campaign", "type": "modifier", "position": {"x": 350, "y": 100}, "data": {"label": "Win-Back Campaign", "subtitle": "Email + discount", "icon": "Mail", "params": [{"key": "discount_pct", "label": "Discount %", "type": "percentage", "default": 20.0, "min": 0, "max": 50, "step": 5}, {"key": "response_rate", "label": "Response Rate %", "type": "percentage", "default": 15.0, "min": 1, "max": 50, "step": 1}]}},
+                    {"id": "churn-reduction", "type": "modifier", "position": {"x": 350, "y": 260}, "data": {"label": "Churn Reduction", "subtitle": "Retention impact", "icon": "TrendingDown", "params": [{"key": "retention_boost", "label": "Retention Boost %", "type": "percentage", "default": 5.0, "min": 0, "max": 20, "step": 1}]}},
+                    {"id": "revenue-impact", "type": "sink", "position": {"x": 650, "y": 180}, "data": {"label": "Revenue Impact", "subtitle": "Net change", "icon": "DollarSign", "params": []}},
                 ],
                 "edge_structure": [
                     {"id": "e1", "source": "baseline", "target": "campaign"},
@@ -192,10 +256,10 @@ def _get_fallback_scenarios(insight_data: Dict[str, Any]) -> List[Dict[str, Any]
                 "description": "Build missing feature that addresses root cause of churn",
                 "template_type": "feature",
                 "node_structure": [
-                    {"id": "baseline", "type": "source", "position": {"x": 50, "y": 180}, "data": {"label": "Current State", "subtitle": "Baseline metrics", "icon": "BarChart"}},
-                    {"id": "feature-dev", "type": "modifier", "position": {"x": 350, "y": 100}, "data": {"label": "Feature Development", "subtitle": "Build time + cost", "icon": "Code"}},
-                    {"id": "adoption", "type": "modifier", "position": {"x": 350, "y": 260}, "data": {"label": "Feature Adoption", "subtitle": "Usage rate", "icon": "Users"}},
-                    {"id": "revenue-impact", "type": "sink", "position": {"x": 650, "y": 180}, "data": {"label": "Revenue Impact", "subtitle": "Net change", "icon": "DollarSign"}},
+                    {"id": "baseline", "type": "source", "position": {"x": 50, "y": 180}, "data": {"label": "Current State", "subtitle": "Baseline metrics", "icon": "BarChart", "params": [{"key": "churn_rate", "label": "Churn Rate %", "type": "percentage", "default": 8.0, "min": 0, "max": 50, "step": 1}, {"key": "mrr", "label": "MRR ($)", "type": "currency", "default": 100000, "min": 10000, "max": 1000000, "step": 10000}]}},
+                    {"id": "feature-dev", "type": "modifier", "position": {"x": 350, "y": 100}, "data": {"label": "Feature Development", "subtitle": "Build time + cost", "icon": "Code", "params": [{"key": "dev_cost", "label": "Dev Cost ($)", "type": "currency", "default": 50000, "min": 10000, "max": 200000, "step": 5000}, {"key": "timeline_months", "label": "Timeline (months)", "type": "months", "default": 3, "min": 1, "max": 12, "step": 1}]}},
+                    {"id": "adoption", "type": "modifier", "position": {"x": 350, "y": 260}, "data": {"label": "Feature Adoption", "subtitle": "Usage rate", "icon": "Users", "params": [{"key": "adoption_rate", "label": "Adoption Rate %", "type": "percentage", "default": 40.0, "min": 5, "max": 80, "step": 5}, {"key": "churn_reduction", "label": "Churn Reduction %", "type": "percentage", "default": 3.0, "min": 0, "max": 15, "step": 0.5}]}},
+                    {"id": "revenue-impact", "type": "sink", "position": {"x": 650, "y": 180}, "data": {"label": "Revenue Impact", "subtitle": "Net change", "icon": "DollarSign", "params": []}},
                 ],
                 "edge_structure": [
                     {"id": "e1", "source": "baseline", "target": "feature-dev"},
@@ -216,10 +280,10 @@ def _get_fallback_scenarios(insight_data: Dict[str, Any]) -> List[Dict[str, Any]
                 "description": "Adjust pricing strategy to improve retention",
                 "template_type": "revenue",
                 "node_structure": [
-                    {"id": "baseline", "type": "source", "position": {"x": 50, "y": 180}, "data": {"label": "Current Pricing", "subtitle": "Baseline", "icon": "CreditCard"}},
-                    {"id": "price-change", "type": "modifier", "position": {"x": 350, "y": 100}, "data": {"label": "Price Change", "subtitle": "New pricing", "icon": "TrendingUp"}},
-                    {"id": "churn-impact", "type": "modifier", "position": {"x": 350, "y": 260}, "data": {"label": "Churn Impact", "subtitle": "Retention change", "icon": "Users"}},
-                    {"id": "revenue-impact", "type": "sink", "position": {"x": 650, "y": 180}, "data": {"label": "Revenue Impact", "subtitle": "Net change", "icon": "DollarSign"}},
+                    {"id": "baseline", "type": "source", "position": {"x": 50, "y": 180}, "data": {"label": "Current Pricing", "subtitle": "Baseline", "icon": "CreditCard", "params": [{"key": "churn_rate", "label": "Churn Rate %", "type": "percentage", "default": 8.0, "min": 0, "max": 50, "step": 1}, {"key": "mrr", "label": "MRR ($)", "type": "currency", "default": 100000, "min": 10000, "max": 1000000, "step": 10000}, {"key": "price", "label": "Price ($/mo)", "type": "currency", "default": 49, "min": 10, "max": 200, "step": 5}]}},
+                    {"id": "price-change", "type": "modifier", "position": {"x": 350, "y": 100}, "data": {"label": "Price Change", "subtitle": "New pricing", "icon": "TrendingUp", "params": [{"key": "new_price", "label": "New Price ($/mo)", "type": "currency", "default": 39, "min": 10, "max": 200, "step": 5}, {"key": "price_change_pct", "label": "Price Change %", "type": "percentage", "default": -20.0, "min": -50, "max": 50, "step": 5}]}},
+                    {"id": "churn-impact", "type": "modifier", "position": {"x": 350, "y": 260}, "data": {"label": "Churn Impact", "subtitle": "Retention change", "icon": "Users", "params": [{"key": "churn_reduction", "label": "Churn Reduction %", "type": "percentage", "default": 2.0, "min": 0, "max": 15, "step": 0.5}]}},
+                    {"id": "revenue-impact", "type": "sink", "position": {"x": 650, "y": 180}, "data": {"label": "Revenue Impact", "subtitle": "Net change", "icon": "DollarSign", "params": []}},
                 ],
                 "edge_structure": [
                     {"id": "e1", "source": "baseline", "target": "price-change"},
@@ -244,9 +308,9 @@ def _get_fallback_scenarios(insight_data: Dict[str, Any]) -> List[Dict[str, Any]
                 "description": "Targeted upsell to higher tier",
                 "template_type": "revenue",
                 "node_structure": [
-                    {"id": "baseline", "type": "source", "position": {"x": 50, "y": 180}, "data": {"label": "Current State", "subtitle": "Baseline", "icon": "BarChart"}},
-                    {"id": "upsell", "type": "modifier", "position": {"x": 350, "y": 180}, "data": {"label": "Upsell Campaign", "subtitle": "Conversion rate", "icon": "ArrowUp"}},
-                    {"id": "revenue-impact", "type": "sink", "position": {"x": 650, "y": 180}, "data": {"label": "Revenue Impact", "subtitle": "Net change", "icon": "DollarSign"}},
+                    {"id": "baseline", "type": "source", "position": {"x": 50, "y": 180}, "data": {"label": "Current State", "subtitle": "Baseline", "icon": "BarChart", "params": [{"key": "mrr", "label": "MRR ($)", "type": "currency", "default": 100000, "min": 10000, "max": 1000000, "step": 10000}]}},
+                    {"id": "upsell", "type": "modifier", "position": {"x": 350, "y": 180}, "data": {"label": "Upsell Campaign", "subtitle": "Conversion rate", "icon": "ArrowUp", "params": [{"key": "conversion_rate", "label": "Conversion Rate %", "type": "percentage", "default": 15.0, "min": 1, "max": 50, "step": 1}, {"key": "price_increase", "label": "Price Increase %", "type": "percentage", "default": 30.0, "min": 5, "max": 100, "step": 5}]}},
+                    {"id": "revenue-impact", "type": "sink", "position": {"x": 650, "y": 180}, "data": {"label": "Revenue Impact", "subtitle": "Net change", "icon": "DollarSign", "params": []}},
                 ],
                 "edge_structure": [
                     {"id": "e1", "source": "baseline", "target": "upsell"},
@@ -264,9 +328,9 @@ def _get_fallback_scenarios(insight_data: Dict[str, Any]) -> List[Dict[str, Any]
                 "description": "Introduce new pricing tier",
                 "template_type": "revenue",
                 "node_structure": [
-                    {"id": "baseline", "type": "source", "position": {"x": 50, "y": 180}, "data": {"label": "Current State", "subtitle": "Baseline", "icon": "BarChart"}},
-                    {"id": "new-tier", "type": "modifier", "position": {"x": 350, "y": 180}, "data": {"label": "New Tier", "subtitle": "Pricing + adoption", "icon": "Layers"}},
-                    {"id": "revenue-impact", "type": "sink", "position": {"x": 650, "y": 180}, "data": {"label": "Revenue Impact", "subtitle": "Net change", "icon": "DollarSign"}},
+                    {"id": "baseline", "type": "source", "position": {"x": 50, "y": 180}, "data": {"label": "Current State", "subtitle": "Baseline", "icon": "BarChart", "params": [{"key": "mrr", "label": "MRR ($)", "type": "currency", "default": 100000, "min": 10000, "max": 1000000, "step": 10000}]}},
+                    {"id": "new-tier", "type": "modifier", "position": {"x": 350, "y": 180}, "data": {"label": "New Tier", "subtitle": "Pricing + adoption", "icon": "Layers", "params": [{"key": "tier_price", "label": "Tier Price ($/mo)", "type": "currency", "default": 99, "min": 20, "max": 500, "step": 5}, {"key": "adoption_rate", "label": "Adoption Rate %", "type": "percentage", "default": 10.0, "min": 1, "max": 50, "step": 1}]}},
+                    {"id": "revenue-impact", "type": "sink", "position": {"x": 650, "y": 180}, "data": {"label": "Revenue Impact", "subtitle": "Net change", "icon": "DollarSign", "params": []}},
                 ],
                 "edge_structure": [
                     {"id": "e1", "source": "baseline", "target": "new-tier"},
@@ -284,9 +348,9 @@ def _get_fallback_scenarios(insight_data: Dict[str, Any]) -> List[Dict[str, Any]
                 "description": "Add premium features to drive upgrades",
                 "template_type": "feature",
                 "node_structure": [
-                    {"id": "baseline", "type": "source", "position": {"x": 50, "y": 180}, "data": {"label": "Current State", "subtitle": "Baseline", "icon": "BarChart"}},
-                    {"id": "feature", "type": "modifier", "position": {"x": 350, "y": 180}, "data": {"label": "New Feature", "subtitle": "Development + adoption", "icon": "Code"}},
-                    {"id": "revenue-impact", "type": "sink", "position": {"x": 650, "y": 180}, "data": {"label": "Revenue Impact", "subtitle": "Net change", "icon": "DollarSign"}},
+                    {"id": "baseline", "type": "source", "position": {"x": 50, "y": 180}, "data": {"label": "Current State", "subtitle": "Baseline", "icon": "BarChart", "params": [{"key": "mrr", "label": "MRR ($)", "type": "currency", "default": 100000, "min": 10000, "max": 1000000, "step": 10000}]}},
+                    {"id": "feature", "type": "modifier", "position": {"x": 350, "y": 180}, "data": {"label": "New Feature", "subtitle": "Development + adoption", "icon": "Code", "params": [{"key": "dev_cost", "label": "Dev Cost ($)", "type": "currency", "default": 75000, "min": 10000, "max": 200000, "step": 5000}, {"key": "upgrade_rate", "label": "Upgrade Rate %", "type": "percentage", "default": 12.0, "min": 1, "max": 50, "step": 1}]}},
+                    {"id": "revenue-impact", "type": "sink", "position": {"x": 650, "y": 180}, "data": {"label": "Revenue Impact", "subtitle": "Net change", "icon": "DollarSign", "params": []}},
                 ],
                 "edge_structure": [
                     {"id": "e1", "source": "baseline", "target": "feature"},

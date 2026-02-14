@@ -7,9 +7,19 @@ import type {
   HistogramData,
   ScenarioTableData,
   VaRCardData,
+  SimulationResults,
 } from "@/types/simulation";
 
 type SimTab = "graph" | "results";
+
+/** One agentic scenario as template + params + results (for graph + NodeInspector + results). */
+export interface AgenticScenarioItem {
+  id: string;
+  name: string;
+  template: SimTemplate;
+  nodeParams: NodeParamValues;
+  results: SimulationResults | null;
+}
 
 interface SimulationState {
   selectedTemplate: SimTemplate | null;
@@ -28,13 +38,13 @@ interface SimulationState {
   varCard: VaRCardData | null;
   summary: string | null;
 
-  // Agentic simulation state
+  // Agentic simulation state (template-like scenarios + per-scenario params/results)
   agenticMode: boolean;
   insightId: string | null;
-  scenarios: Array<{ id: string; name: string; results: any }>;
+  scenarios: AgenticScenarioItem[];
   selectedScenario: string | null;
-  comparisonData: any | null;
-  artifacts: Array<{ type: string; content: string; title: string; metadata?: any }>;
+  comparisonData: unknown | null;
+  artifacts: Array<{ type: string; content: string; title: string; metadata?: unknown }>;
 
   selectTemplate: (template: SimTemplate) => void;
   setNodeParam: (nodeId: string, paramKey: string, value: number) => void;
@@ -57,10 +67,14 @@ interface SimulationState {
 
   // Agentic simulation actions
   setAgenticMode: (mode: boolean, insightId?: string) => void;
-  setScenarios: (scenarios: Array<{ id: string; name: string; results: any }>) => void;
+  setScenarios: (scenarios: AgenticScenarioItem[]) => void;
   setSelectedScenario: (scenarioId: string | null) => void;
-  setComparisonData: (data: any) => void;
-  setArtifacts: (artifacts: Array<{ type: string; content: string; title: string; metadata?: any }>) => void;
+  setComparisonData: (data: unknown) => void;
+  setArtifacts: (artifacts: Array<{ type: string; content: string; title: string; metadata?: unknown }>) => void;
+  /** Update results for one scenario; if it's the selected one, also set top-level fanChart/etc. */
+  setAgenticScenarioResults: (scenarioId: string, results: SimulationResults) => void;
+  /** Sync selected scenario's template/params/results to selectedTemplate, nodeParams, fanChart/etc. */
+  syncSelectedScenarioToTemplate: () => void;
 }
 
 const EMPTY_RESULTS = {
@@ -82,6 +96,12 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   simulationId: null,
   inspectedNodeId: null,
   ...EMPTY_RESULTS,
+  agenticMode: false,
+  insightId: null,
+  scenarios: [],
+  selectedScenario: null,
+  comparisonData: null,
+  artifacts: [],
 
   selectTemplate: (template) => {
     const params: NodeParamValues = {};
@@ -108,15 +128,25 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   },
 
   setNodeParam: (nodeId, paramKey, value) =>
-    set((state) => ({
-      nodeParams: {
+    set((state) => {
+      const nextNodeParams = {
         ...state.nodeParams,
         [nodeId]: {
           ...state.nodeParams[nodeId],
           [paramKey]: value,
         },
-      },
-    })),
+      };
+      // In agentic mode, persist to current scenario's nodeParams
+      if (state.agenticMode && state.selectedScenario && state.scenarios.length > 0) {
+        const scenarios = state.scenarios.map((s) =>
+          s.id === state.selectedScenario
+            ? { ...s, nodeParams: nextNodeParams }
+            : s
+        );
+        return { nodeParams: nextNodeParams, scenarios };
+      }
+      return { nodeParams: nextNodeParams };
+    }),
 
   setActiveTab: (tab) => set({ activeTab: tab }),
   setIsRunning: (running) => set({ isRunning: running }),
@@ -166,11 +196,76 @@ export const useSimulationStore = create<SimulationState>((set) => ({
     set({
       agenticMode: mode,
       insightId: insightId || null,
-      activeTab: "results",
+      activeTab: "graph",
     }),
 
   setScenarios: (scenarios) => set({ scenarios }),
-  setSelectedScenario: (scenarioId) => set({ selectedScenario: scenarioId }),
+
+  setSelectedScenario: (scenarioId) =>
+    set((state) => {
+      const next: Partial<SimulationState> = { selectedScenario: scenarioId };
+      if (!state.agenticMode || !scenarioId || state.scenarios.length === 0)
+        return next;
+      const scenario = state.scenarios.find((s) => s.id === scenarioId);
+      if (scenario) {
+        next.selectedTemplate = scenario.template;
+        next.nodeParams = scenario.nodeParams;
+        next.activeTab = "graph";
+        next.inspectedNodeId = null;
+        if (scenario.results) {
+          next.fanChart = scenario.results.fanChart;
+          next.tornadoChart = scenario.results.tornadoChart;
+          next.histogram = scenario.results.histogram;
+          next.scenarioTable = scenario.results.scenarioTable;
+          next.varCard = scenario.results.varCard;
+          next.summary = scenario.results.summary;
+        } else {
+          next.fanChart = null;
+          next.tornadoChart = null;
+          next.histogram = null;
+          next.scenarioTable = null;
+          next.varCard = null;
+          next.summary = null;
+        }
+      }
+      return next;
+    }),
+
   setComparisonData: (data) => set({ comparisonData: data }),
   setArtifacts: (artifacts) => set({ artifacts }),
+
+  setAgenticScenarioResults: (scenarioId, results) =>
+    set((state) => {
+      const scenarios = state.scenarios.map((s) =>
+        s.id === scenarioId ? { ...s, results } : s
+      );
+      const next: Partial<SimulationState> = { scenarios };
+      if (state.selectedScenario === scenarioId) {
+        next.fanChart = results.fanChart;
+        next.tornadoChart = results.tornadoChart;
+        next.histogram = results.histogram;
+        next.scenarioTable = results.scenarioTable;
+        next.varCard = results.varCard;
+        next.summary = results.summary;
+      }
+      return next;
+    }),
+
+  syncSelectedScenarioToTemplate: () =>
+    set((state) => {
+      if (!state.agenticMode || !state.selectedScenario || state.scenarios.length === 0)
+        return {};
+      const scenario = state.scenarios.find((s) => s.id === state.selectedScenario);
+      if (!scenario) return {};
+      return {
+        selectedTemplate: scenario.template,
+        nodeParams: scenario.nodeParams,
+        fanChart: scenario.results?.fanChart ?? null,
+        tornadoChart: scenario.results?.tornadoChart ?? null,
+        histogram: scenario.results?.histogram ?? null,
+        scenarioTable: scenario.results?.scenarioTable ?? null,
+        varCard: scenario.results?.varCard ?? null,
+        summary: scenario.results?.summary ?? null,
+      };
+    }),
 }));

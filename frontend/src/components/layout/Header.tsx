@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   FlaskConical,
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/appStore";
+import { useSimulationStore } from "@/stores/simulationStore";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -20,6 +21,18 @@ const navItems = [
 export const Header = () => {
   const { theme, toggleTheme, setCommandBarOpen, toggleSidePanel } =
     useAppStore();
+  const location = useLocation();
+  const agenticMode = useSimulationStore((s) => s.agenticMode);
+  const insightId = useSimulationStore((s) => s.insightId);
+  const searchParams = new URLSearchParams(location.search);
+  const urlAgentic = searchParams.get("mode") === "agentic";
+  const urlInsightId = searchParams.get("insightId");
+  const inAgenticView =
+    location.pathname === "/simulations" &&
+    ((urlAgentic && urlInsightId) || (agenticMode && insightId));
+  const simulationsTo = inAgenticView && (urlInsightId || insightId)
+    ? `/simulations?mode=agentic&insightId=${urlInsightId ?? insightId ?? ""}`
+    : "/simulations";
 
   return (
     <header className="h-14 border-b border-border bg-card flex items-center px-4 gap-2 shrink-0">
@@ -33,20 +46,23 @@ export const Header = () => {
       </div>
 
       <nav className="flex items-center gap-1">
-        {navItems.map(({ to, icon: Icon, label }) => (
-          <NavLink key={to} to={to}>
-            {({ isActive }) => (
-              <Button
-                variant={isActive ? "secondary" : "ghost"}
-                size="sm"
-                className="gap-1.5 text-xs"
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {label}
-              </Button>
-            )}
-          </NavLink>
-        ))}
+        {navItems.map(({ to, icon: Icon, label }) => {
+          const href = to === "/simulations" ? simulationsTo : to;
+          return (
+            <NavLink key={to} to={href}>
+              {({ isActive }) => (
+                <Button
+                  variant={isActive ? "secondary" : "ghost"}
+                  size="sm"
+                  className="gap-1.5 text-xs"
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {label}
+                </Button>
+              )}
+            </NavLink>
+          );
+        })}
       </nav>
 
       <div className="flex-1" />

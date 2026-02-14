@@ -8,32 +8,47 @@ client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
 MODEL = "claude-opus-4-6"
 
 
+def _supports_adaptive_thinking(model: str) -> bool:
+    """Adaptive thinking is only supported on Opus 4.x, not Sonnet."""
+    return "opus" in model.lower() and "4" in model
+
+
 async def stream_completion(
     system_prompt: str,
     user_prompt: str,
     budget_tokens: int = 2000,
     model: str | None = None,
     max_tokens: int = 16000,
+    use_thinking: bool | None = None,
 ) -> AsyncGenerator[dict[str, str], None]:
-    """Stream a Claude response, yielding thinking and text events."""
-    async with client.messages.stream(
-        model=model or MODEL,
-        max_tokens=max_tokens,
-        thinking={"type": "adaptive"},
-        system=system_prompt,
-        messages=[{"role": "user", "content": user_prompt}],
-    ) as stream:
+    """Stream a Claude response, yielding thinking and text events.
+    If use_thinking is None, it is enabled only for models that support adaptive thinking (e.g. Opus 4)."""
+    resolved_model = model or MODEL
+    if use_thinking is None:
+        use_thinking = _supports_adaptive_thinking(resolved_model)
+    stream_kw: dict = {
+        "model": resolved_model,
+        "max_tokens": max_tokens,
+        "system": system_prompt,
+        "messages": [{"role": "user", "content": user_prompt}],
+    }
+    if use_thinking:
+        stream_kw["thinking"] = {"type": "adaptive"}
+    async with client.messages.stream(**stream_kw) as stream:
         async for event in stream:
             if event.type == "content_block_start":
-                if event.content_block.type == "thinking":
+                if use_thinking and getattr(event.content_block, "type", None) == "thinking":
                     yield {"type": "thinking", "content": ""}
-                elif event.content_block.type == "text":
+                elif getattr(event.content_block, "type", None) == "text":
                     yield {"type": "text_start", "content": ""}
             elif event.type == "content_block_delta":
-                if event.delta.type == "thinking_delta":
-                    yield {"type": "thinking", "content": event.delta.thinking}
-                elif event.delta.type == "text_delta":
-                    yield {"type": "text", "content": event.delta.text}
+                delta = getattr(event, "delta", None)
+                if not delta:
+                    continue
+                if use_thinking and getattr(delta, "type", None) == "thinking_delta":
+                    yield {"type": "thinking", "content": getattr(delta, "thinking", "") or ""}
+                elif getattr(delta, "type", None) == "text_delta":
+                    yield {"type": "text", "content": getattr(delta, "text", "") or ""}
 
 
 async def stream_chat(

@@ -11,12 +11,11 @@ import {
   Download,
   Copy,
   Eye,
-  ChevronDown,
   ChevronUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface Artifact {
+export interface Artifact {
   type: "email" | "pdf" | "jira_ticket" | "prd";
   title: string;
   content: string;

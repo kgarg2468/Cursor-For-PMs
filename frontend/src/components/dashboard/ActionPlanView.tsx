@@ -12,7 +12,6 @@ import { ClipboardList, Filter, Loader2 } from "lucide-react";
 import { useAppStore } from "@/stores/appStore";
 import { useActionPlanStore } from "@/stores/actionPlanStore";
 import { insightsApi } from "@/lib/api";
-import type { ActionItemResponse } from "@/lib/api";
 import { ActionCard } from "./ActionCard";
 
 export const ActionPlanView = () => {

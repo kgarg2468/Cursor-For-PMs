@@ -1,4 +1,5 @@
-import { useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FlaskConical, Play, Loader2, Sparkles } from "lucide-react";
@@ -19,13 +20,25 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export const SimulationsPage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const agenticMode = searchParams.get("mode") === "agentic";
   const agenticModeFromStore = useSimulationStore((s) => s.agenticMode);
-  
+  const insightIdFromStore = useSimulationStore((s) => s.insightId);
+
   const selectedTemplate = useSimulationStore((s) => s.selectedTemplate);
   const activeTab = useSimulationStore((s) => s.activeTab);
   const setActiveTab = useSimulationStore((s) => s.setActiveTab);
-  
+
+  // When store has agentic context but URL has no params, sync URL so nav link preserves it
+  useEffect(() => {
+    if (agenticModeFromStore && insightIdFromStore && !agenticMode) {
+      navigate(
+        `/simulations?mode=agentic&insightId=${insightIdFromStore}`,
+        { replace: true }
+      );
+    }
+  }, [agenticModeFromStore, insightIdFromStore, agenticMode, navigate]);
+
   // Show agentic view if in agentic mode (height-guaranteed wrapper so main gets a real height)
   if (agenticMode || agenticModeFromStore) {
     return (
