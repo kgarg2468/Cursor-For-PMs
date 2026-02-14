@@ -201,6 +201,27 @@ def _normalize_scenario_params(scenario: Dict[str, Any]) -> None:
                     "step": 1,
                 })
 
+        # Source and modifier nodes should have at least one editable param (like templates)
+        node_type = node.get("type", "")
+        if node_type in ("source", "modifier") and not params_defs:
+            node_label = data.get("label", node_id) or node_id
+            default_key = "baseline_value" if node_type == "source" else "impact_factor"
+            param_label = f"{node_label} (baseline)" if node_type == "source" else f"{node_label} impact"
+            params_defs = [
+                {
+                    "key": default_key,
+                    "label": param_label,
+                    "type": "number",
+                    "default": 100000.0 if node_type == "source" else 1.0,
+                    "min": 0,
+                    "max": 10000000 if node_type == "source" else 10,
+                    "step": 1000 if node_type == "source" else 0.1,
+                }
+            ]
+            if node_id not in node_params:
+                node_params[node_id] = {}
+            node_params[node_id][default_key] = params_defs[0]["default"]
+
         # Sync node_params from params defs (ensure every param key has a value)
         if params_defs:
             if node_id not in node_params:

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, type ReactNode } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -20,7 +20,37 @@ import { ScenarioTable } from "./results/ScenarioTable";
 import { VaRCard } from "./results/VaRCard";
 import { ArtifactPreview, type Artifact } from "./ArtifactPreview";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useSimulation } from "@/hooks/useSimulation";
+
+/** Split summary into bullet lines (newline or sentence); filter empty. */
+function summaryToBullets(summary: string): string[] {
+  const raw = summary
+    .split(/\n+/)
+    .flatMap((line) => line.split(/(?<=[.!])\s+/))
+    .map((s) => s.replace(/^[•\-*]\s*/, "").trim())
+    .filter(Boolean);
+  return raw.length > 0 ? raw : [summary.trim()];
+}
+
+/** Render a line with **bold** segments as <strong>. */
+function renderLineWithBold(line: string): ReactNode {
+  const parts = line.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((p, i) =>
+    p.startsWith("**") && p.endsWith("**") ? (
+      <strong key={i} className="font-semibold text-foreground">
+        {p.slice(2, -2)}
+      </strong>
+    ) : (
+      p
+    )
+  );
+}
 
 function completedEventToResults(completed: Record<string, unknown>): SimulationResults {
   return {
@@ -131,6 +161,10 @@ export const AgenticSimulationView = () => {
       setLoading(false);
       return;
     }
+
+    // Ensure store reflects agentic mode when we're on agentic URL (e.g. after refresh or direct nav).
+    // Otherwise setSelectedScenario won't sync template/results and post-run persistence won't run.
+    setAgenticMode(true, insightId);
 
     const loadSimulation = async () => {
       try {
@@ -352,13 +386,22 @@ export const AgenticSimulationView = () => {
             onValueChange={(v) => setActiveTab(v as "graph" | "results")}
             className="flex flex-col h-full flex-1"
           >
-            <div className="shrink-0 border-b border-border px-4 py-2 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div>
-                  <span className="text-sm font-semibold">{currentScenario.name}</span>
-                  <p className="text-[10px] text-muted-foreground">
-                    {currentScenario.template.subtitle || "Scenario"}
-                  </p>
+            <div className="shrink-0 border-b border-border px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-base font-semibold truncate">{currentScenario.name}</h2>
+                  <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5 cursor-default truncate">
+                          {currentScenario.template.subtitle || "Scenario"}
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-sm p-3 text-left text-sm">
+                        {currentScenario.template.subtitle || "Scenario"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
                 <TabsList>
                   <TabsTrigger value="graph" className="text-xs">
@@ -390,12 +433,22 @@ export const AgenticSimulationView = () => {
             </div>
 
             <TabsContent value="graph" className="flex-1 m-0 min-h-0 flex flex-col data-[state=active]:flex">
-              <div className="flex flex-1 min-h-[360px]">
-                <div className="flex-1 min-w-0 min-h-[360px]">
+              <div className="flex flex-1 min-h-[378px]">
+                <div className="flex-1 min-w-0 min-h-[378px]">
                   <SimulationCanvas />
                 </div>
                 <NodeInspector />
               </div>
+              {summary && (
+                <div className="shrink-0 border-t border-border px-4 py-4 bg-muted/30">
+                  <p className="text-sm font-medium text-muted-foreground mb-3">Key outcomes at a glance</p>
+                  <ul className="text-base text-foreground/90 space-y-2 list-disc list-inside marker:text-primary/70">
+                    {summaryToBullets(summary).map((line, i) => (
+                      <li key={i}>{renderLineWithBold(line)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="results" className="flex-1 m-0 overflow-y-auto">
@@ -432,13 +485,15 @@ export const AgenticSimulationView = () => {
                         <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
                           <Sparkles className="h-4 w-4 text-primary" />
                         </div>
-                        <div>
-                          <h3 className="text-sm font-medium mb-1">
-                            Executive Summary
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-sm font-medium mb-2">
+                            Key outcomes at a glance
                           </h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {summary}
-                          </p>
+                          <ul className="text-base text-muted-foreground space-y-2 list-disc list-inside marker:text-primary/70">
+                            {summaryToBullets(summary).map((line, i) => (
+                              <li key={i}>{renderLineWithBold(line)}</li>
+                            ))}
+                          </ul>
                         </div>
                       </div>
                     </CardContent>

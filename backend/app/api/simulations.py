@@ -3,8 +3,13 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from app.models.database import get_db
-from app.models.schemas import SimulationResponse, RunGraphSimulationRequest
-from app.services import simulation_engine, agentic_simulation, artifact_generator
+from app.models.schemas import (
+    SimulationResponse,
+    RunGraphSimulationRequest,
+    NodeContextRequest,
+    NodeContextResponse,
+)
+from app.services import simulation_engine, agentic_simulation, artifact_generator, claude_client
 
 router = APIRouter(prefix="/api/simulations", tags=["simulations"])
 
@@ -19,6 +24,7 @@ async def run_graph_simulation(req: RunGraphSimulationRequest) -> StreamingRespo
             node_structure=req.node_structure,
             edge_structure=req.edge_structure,
             dataset_id=req.dataset_id,
+            node_context=req.node_context,
         ):
             yield f"data: {json.dumps(event)}\n\n"
 
@@ -31,6 +37,25 @@ async def run_graph_simulation(req: RunGraphSimulationRequest) -> StreamingRespo
             "X-Accel-Buffering": "no",
         },
     )
+
+
+NODE_CONTEXT_SYSTEM = """You are helping a product manager add specific details to a simulation node. The user is describing context, assumptions, or constraints for this node in a causal simulation graph. Reply in 2-4 short sentences: acknowledge their input and suggest concrete numbers or ranges they could use for this node's parameters if relevant. Be specific and actionable. If they ask a question, answer it directly."""
+
+
+@router.post("/node-context", response_model=NodeContextResponse)
+async def get_node_context_reply(req: NodeContextRequest) -> NodeContextResponse:
+    """Get Claude's reply to user-provided context for a simulation node."""
+    user_prompt = f"""Node: "{req.node_label}" (type: {req.node_type}).
+
+User message: {req.user_message}
+
+Reply with specific, actionable guidance for this node (2-4 sentences)."""
+    reply = await claude_client.complete_no_thinking(
+        system_prompt=NODE_CONTEXT_SYSTEM,
+        user_prompt=user_prompt,
+        max_tokens=512,
+    )
+    return NodeContextResponse(reply=reply or "No response.")
 
 
 @router.get("", response_model=list[SimulationResponse])

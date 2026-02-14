@@ -100,3 +100,26 @@ async def complete(
             text += block.text
 
     return {"thinking": thinking, "text": text}
+
+
+# Model that does not use adaptive thinking (for node-context and simulation runs)
+SONNET_MODEL = "claude-sonnet-4-5-20250929"
+
+
+async def complete_no_thinking(
+    system_prompt: str,
+    user_prompt: str,
+    max_tokens: int = 1024,
+) -> str:
+    """Non-streaming completion without adaptive thinking. Returns only text. Uses Sonnet."""
+    text = ""
+    async for event in stream_completion(
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        model=SONNET_MODEL,
+        max_tokens=max_tokens,
+        use_thinking=False,
+    ):
+        if event.get("type") == "text":
+            text += event.get("content", "")
+    return text.strip()

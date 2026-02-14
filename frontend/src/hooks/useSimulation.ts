@@ -16,6 +16,8 @@ export function useSimulation() {
   const {
     selectedTemplate,
     nodeParams,
+    nodeContext,
+    getNodeContextScope,
     isRunning,
     progress,
     thinkingSteps,
@@ -53,6 +55,19 @@ export function useSimulation() {
     setIsRunning(true);
     setActiveTab("results");
 
+    const scope = getNodeContextScope();
+    const node_context: Record<string, { user_message: string; claude_reply?: string }> = {};
+    for (const node of selectedTemplate.nodes) {
+      const key = `${scope}:${node.id}`;
+      const ctx = nodeContext[key];
+      if (ctx?.userMessage) {
+        node_context[node.id] = {
+          user_message: ctx.userMessage,
+          ...(ctx.claudeReply && { claude_reply: ctx.claudeReply }),
+        };
+      }
+    }
+
     const url = simulationsApi.runGraphUrl();
     const body = {
       template_id: selectedTemplate.id,
@@ -71,6 +86,7 @@ export function useSimulation() {
         target: e.target,
       })),
       dataset_id: activeDataset?.id ?? null,
+      ...(Object.keys(node_context).length > 0 && { node_context }),
     };
 
     connectionRef.current = connectPostSSE(
@@ -125,6 +141,8 @@ export function useSimulation() {
   }, [
     selectedTemplate,
     nodeParams,
+    nodeContext,
+    getNodeContextScope,
     activeDataset,
     clearResults,
     setIsRunning,

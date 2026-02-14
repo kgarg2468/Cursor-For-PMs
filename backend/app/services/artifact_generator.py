@@ -4,39 +4,52 @@ from app.services import claude_client
 from app.models.database import get_db
 
 
-ARTIFACT_SYSTEM_PROMPT = """You are a product strategist. Given a simulation scenario and its results, generate actionable artifacts.
+ARTIFACT_SYSTEM_PROMPT = """You are a product strategist. Given a simulation scenario and its results, generate actionable artifacts grounded in the simulation summary and insight.
 
-Generate artifacts based on the scenario type:
-- Retention scenarios: Email drafts for win-back campaigns
-- Revenue scenarios: PDF proposals for pricing changes or new tiers
-- Feature scenarios: Jira tickets and PRDs for product development
+Allowed artifact types: executive_one_pager, slack_update, email, pdf, jira_ticket, prd, meeting_agenda.
 
 Return a JSON object with this structure:
 {
   "artifacts": [
     {
-      "type": "email" | "pdf" | "jira_ticket" | "prd",
+      "type": "executive_one_pager" | "slack_update" | "email" | "pdf" | "jira_ticket" | "prd" | "meeting_agenda",
       "title": "Artifact title",
-      "content": "Full content (for email: HTML-ready text, for PDF: markdown, for jira: JSON, for PRD: markdown)",
-      "metadata": {
-        "recipients": ["email1@example.com"] (for emails),
-        "priority": "high" | "medium" | "low" (for jira),
-        "labels": ["label1", "label2"] (for jira),
-        "sections": ["section1", "section2"] (for PRD)
-      }
+      "content": "Full content. Use exact numbers and bullets from the simulation summary; do not invent figures.",
+      "metadata": {}
     }
   ]
 }
 
-Be specific and actionable. Use real numbers from the simulation results. Return ONLY valid JSON."""
+Content guidelines:
+- executive_one_pager: 5-7 bullets with **Investment**, **Revenue impact**, **Payback**, **Risks**. Use **bold** for key numbers.
+- slack_update: Short message for #product/#growth: key numbers, one CTA, no markdown blocks.
+- email: Subject + body; use simulation numbers in the copy.
+- meeting_agenda: 30-min agenda: Context (2 min), Numbers (5 min), Decision (15 min), Next steps (5 min).
+- jira_ticket: JSON with summary, description, issueType, priority, labels. Description must cite simulation.
+- prd: Markdown with Problem, Goals, Success metrics (from simulation), User stories.
+- pdf: Markdown proposal outline (sections only with 1-line each).
+
+Generate ONLY the artifact types requested. Use the simulation summary verbatim for numbers. Return ONLY valid JSON."""
+
+
+def _default_artifact_types(winning_scenario: Dict[str, Any]) -> List[str]:
+    """Default artifact set: one-pager + Slack + email for all; add jira/prd for feature, pdf for revenue."""
+    template_type = (winning_scenario.get("template_type") or "").lower()
+    base = ["executive_one_pager", "slack_update", "email"]
+    if template_type == "feature":
+        return base + ["jira_ticket", "prd"]
+    if template_type == "revenue":
+        return base + ["pdf"]
+    return base + ["meeting_agenda"]
 
 
 async def generate_artifacts(
     insight_id: str,
     winning_scenario: Dict[str, Any],
     simulation_results: Dict[str, Any],
+    requested_types: List[str] | None = None,
 ) -> List[Dict[str, Any]]:
-    """Generate artifacts for a winning scenario."""
+    """Generate artifacts for a winning scenario. If requested_types is set, generate only those."""
     
     # Load insight context
     db = await get_db()
@@ -63,8 +76,15 @@ async def generate_artifacts(
     finally:
         await db.close()
     
-    # Build prompt
-    user_prompt = f"""Generate actionable artifacts for this winning simulation scenario:
+    types_to_generate = requested_types or _default_artifact_types(winning_scenario)
+    scenario_name = winning_scenario.get("scenario_name") or winning_scenario.get("name") or "Winning scenario"
+    
+    # Build prompt with simulation summary prominent so artifacts use real numbers
+    summary_block = simulation_results.get("summary") or "N/A"
+    var_card = simulation_results.get("var_card") or {}
+    scenario_table = simulation_results.get("scenario_table") or {}
+    
+    user_prompt = f"""Generate ONLY these artifact types: {json.dumps(types_to_generate)}.
 
 ## Insight Context
 Type: {insight_data['type']}
@@ -75,17 +95,20 @@ Customers Affected: {insight_data['impact_customers'] or 0}
 Prediction: {insight_data['prediction'] or 'N/A'}
 
 ## Winning Scenario
-Name: {winning_scenario.get('scenario_name', 'Unknown')}
+Name: {scenario_name}
 Description: {winning_scenario.get('description', winning_scenario.get('rationale', 'N/A'))}
 Rationale: {winning_scenario.get('rationale', 'N/A')}
 Template type: {winning_scenario.get('template_type', 'N/A')}
 
-## Simulation Results
-Summary: {simulation_results.get('summary', 'N/A')}
-Expected Value: ${simulation_results.get('var_card', {}).get('expected_value', 0)}
-Revenue Impact: {json.dumps(simulation_results.get('scenario_table', {}).get('scenarios', []))}
+## Simulation Results (use these exact numbers in artifacts)
+Summary (bullet points – cite these verbatim where relevant):
+{summary_block}
 
-Generate appropriate artifacts based on the scenario type. For retention scenarios, generate email drafts. For revenue scenarios, generate PDF proposals. For feature scenarios, generate Jira tickets and PRDs.
+Expected Value: ${var_card.get('expected_value', 0)}
+VaR: ${var_card.get('var_amount', 0)}
+Scenario table: {json.dumps(scenario_table.get('scenarios', [])[:3])}
+
+Generate exactly {len(types_to_generate)} artifacts, one per requested type. Use the simulation summary numbers in every artifact. Return ONLY valid JSON.
 """
 
     # Call Claude
@@ -123,14 +146,35 @@ Generate appropriate artifacts based on the scenario type. For retention scenari
 def _generate_fallback_artifacts(
     winning_scenario: Dict[str, Any],
     insight_data: Dict[str, Any],
+    requested_types: List[str] | None = None,
 ) -> List[Dict[str, Any]]:
     """Generate fallback artifacts if Claude fails."""
-    scenario_name = winning_scenario.get("scenario_name", "Strategy")
-    scenario_type = winning_scenario.get("template_type", "revenue")
+    scenario_name = winning_scenario.get("scenario_name") or winning_scenario.get("name") or "Strategy"
+    scenario_type = (winning_scenario.get("template_type") or "revenue").lower()
+    types_wanted = requested_types or _default_artifact_types(winning_scenario)
     
     artifacts = []
-    
-    if scenario_type == "retention":
+    summary = (winning_scenario.get("summary") or "").strip() or "See simulation results for key numbers."
+
+    # Executive one-pager (always include if requested)
+    if "executive_one_pager" in types_wanted:
+        artifacts.append({
+            "type": "executive_one_pager",
+            "title": f"One-pager: {scenario_name}",
+            "content": f"# {scenario_name}\n\n{summary}\n\n## Next steps\n- [ ] Review with stakeholders\n- [ ] Align on timeline",
+            "metadata": {},
+        })
+
+    # Slack update
+    if "slack_update" in types_wanted:
+        artifacts.append({
+            "type": "slack_update",
+            "title": f"Slack update: {scenario_name}",
+            "content": f"Simulation result: {scenario_name}. Key outcomes: {summary[:200]}...",
+            "metadata": {},
+        })
+
+    if scenario_type == "retention" and "email" in types_wanted:
         # Email draft
         artifacts.append({
             "type": "email",
@@ -159,8 +203,9 @@ Best regards,
         })
     
     elif scenario_type == "revenue":
-        # PDF proposal
-        artifacts.append({
+        if "pdf" in types_wanted:
+            # PDF proposal
+            artifacts.append({
             "type": "pdf",
             "title": f"Pricing Strategy Proposal: {scenario_name}",
             "content": f"""# Pricing Strategy Proposal: {scenario_name}
@@ -189,10 +234,18 @@ Best regards,
 [Action items]""",
             "metadata": {},
         })
+        if "email" in types_wanted:
+            artifacts.append({
+                "type": "email",
+                "title": f"Stakeholder update: {scenario_name}",
+                "content": f"Subject: Simulation outcome – {scenario_name}\n\n{summary}",
+                "metadata": {},
+            })
     
-    else:  # feature
-        # Jira ticket
-        artifacts.append({
+    if scenario_type == "feature" or "jira_ticket" in types_wanted or "prd" in types_wanted:
+        if "jira_ticket" in types_wanted:
+            # Jira ticket
+            artifacts.append({
             "type": "jira_ticket",
             "title": f"Feature: {scenario_name}",
             "content": json.dumps({
@@ -208,9 +261,9 @@ Best regards,
                 "labels": ["product", "feature"],
             },
         })
-        
-        # PRD
-        artifacts.append({
+        if "prd" in types_wanted:
+            # PRD
+            artifacts.append({
             "type": "prd",
             "title": f"PRD: {scenario_name}",
             "content": f"""# Product Requirements Document: {scenario_name}

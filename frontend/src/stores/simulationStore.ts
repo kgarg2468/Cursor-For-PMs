@@ -46,6 +46,9 @@ interface SimulationState {
   comparisonData: unknown | null;
   artifacts: Array<{ type: string; content: string; title: string; metadata?: unknown }>;
 
+  /** Per-node "Talk to Claude" context. Key = `${scopeKey}:${nodeId}`. */
+  nodeContext: Record<string, { userMessage: string; claudeReply?: string }>;
+
   selectTemplate: (template: SimTemplate) => void;
   setNodeParam: (nodeId: string, paramKey: string, value: number) => void;
   setActiveTab: (tab: SimTab) => void;
@@ -75,6 +78,11 @@ interface SimulationState {
   setAgenticScenarioResults: (scenarioId: string, results: SimulationResults) => void;
   /** Sync selected scenario's template/params/results to selectedTemplate, nodeParams, fanChart/etc. */
   syncSelectedScenarioToTemplate: () => void;
+
+  /** Scope key for node context: agentic = selectedScenario, else template id. */
+  getNodeContextScope: () => string;
+  getNodeContext: (nodeId: string) => { userMessage: string; claudeReply?: string } | undefined;
+  setNodeContext: (nodeId: string, data: { userMessage: string; claudeReply?: string }) => void;
 }
 
 const EMPTY_RESULTS = {
@@ -102,6 +110,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   selectedScenario: null,
   comparisonData: null,
   artifacts: [],
+  nodeContext: {},
 
   selectTemplate: (template) => {
     const params: NodeParamValues = {};
@@ -190,6 +199,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       selectedScenario: null,
       comparisonData: null,
       artifacts: [],
+      nodeContext: {},
     }),
 
   setAgenticMode: (mode, insightId) =>
@@ -266,6 +276,31 @@ export const useSimulationStore = create<SimulationState>((set) => ({
         scenarioTable: scenario.results?.scenarioTable ?? null,
         varCard: scenario.results?.varCard ?? null,
         summary: scenario.results?.summary ?? null,
+      };
+    }),
+
+  getNodeContextScope: () => {
+    const state = useSimulationStore.getState();
+    if (state.agenticMode && state.selectedScenario) return state.selectedScenario;
+    return state.selectedTemplate?.id ?? "template";
+  },
+
+  getNodeContext: (nodeId) => {
+    const state = useSimulationStore.getState();
+    const scope = state.agenticMode && state.selectedScenario
+      ? state.selectedScenario
+      : state.selectedTemplate?.id ?? "template";
+    return state.nodeContext[`${scope}:${nodeId}`];
+  },
+
+  setNodeContext: (nodeId, data) =>
+    set((state) => {
+      const scope = state.agenticMode && state.selectedScenario
+        ? state.selectedScenario
+        : state.selectedTemplate?.id ?? "template";
+      const key = `${scope}:${nodeId}`;
+      return {
+        nodeContext: { ...state.nodeContext, [key]: data },
       };
     }),
 }));

@@ -198,6 +198,16 @@ export const simulationsApi = {
 
   runGraphUrl: () => `${API_BASE}/simulations/run-graph`,
 
+  postNodeContext: (body: {
+    node_label: string;
+    node_type: string;
+    user_message: string;
+  }) =>
+    request<{ reply: string }>("/simulations/node-context", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
   triggerAgenticUrl: () => `${API_BASE}/simulations/agentic/trigger`,
 
   getAgentic: (insightId: string) =>

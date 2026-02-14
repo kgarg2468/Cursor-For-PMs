@@ -13,7 +13,7 @@ Be fast. Use quick estimates. Do NOT over-think. RESPOND IMMEDIATELY with the JS
 
 Return a JSON object with EXACTLY these 6 keys:
 
-{"fan_chart":{"title":"...","x_label":"Month","y_label":"Revenue ($)","series":[{"id":"p10","label":"Pessimistic (P10)","data":[{"x":"M1","y":N},...12 points]},{"id":"p50","label":"Expected (P50)","data":[...]},{"id":"p90","label":"Optimistic (P90)","data":[...]},{"id":"baseline","label":"No Change","data":[...]}]},"tornado_chart":{"title":"Sensitivity Analysis","factors":[{"factor":"Name","low":N,"high":N,"base":N},...4-6 factors sorted by swing]},"histogram":{"title":"Outcome Distribution (Month 12)","x_label":"Revenue Impact ($)","buckets":[{"range":"$0-10K","count":N},...8-12 buckets],"percentiles":{"p5":N,"p50":N,"p95":N}},"scenario_table":{"title":"Scenario Comparison","scenarios":[{"name":"Best Case","revenue_impact":N,"customer_impact":N,"timeline":"X months","probability":N,"key_assumption":"..."},{"name":"Base Case",...},{"name":"Worst Case",...}],"recommendation":"best"|"base"|"worst"},"var_card":{"title":"Value at Risk","var_amount":N,"var_description":"...","confidence_level":95,"expected_value":N,"best_case":N,"recommendation":"..."},"summary":"2-3 sentence executive summary with specific numbers."}
+{"fan_chart":{"title":"...","x_label":"Month","y_label":"Revenue ($)","series":[{"id":"p10","label":"Pessimistic (P10)","data":[{"x":"M1","y":N},...12 points]},{"id":"p50","label":"Expected (P50)","data":[...]},{"id":"p90","label":"Optimistic (P90)","data":[...]},{"id":"baseline","label":"No Change","data":[...]}]},"tornado_chart":{"title":"Sensitivity Analysis","factors":[{"factor":"Name","low":N,"high":N,"base":N},...4-6 factors sorted by swing]},"histogram":{"title":"Outcome Distribution (Month 12)","x_label":"Revenue Impact ($)","buckets":[{"range":"$0-10K","count":N},...8-12 buckets],"percentiles":{"p5":N,"p50":N,"p95":N}},"scenario_table":{"title":"Scenario Comparison","scenarios":[{"name":"Best Case","revenue_impact":N,"customer_impact":N,"timeline":"X months","probability":N,"key_assumption":"..."},{"name":"Base Case",...},{"name":"Worst Case",...}],"recommendation":"best"|"base"|"worst"},"var_card":{"title":"Value at Risk","var_amount":N,"var_description":"...","confidence_level":95,"expected_value":N,"best_case":N,"recommendation":"..."},"summary":"5-7 bullet points. One per line, newline-separated. Format each line exactly like: * **Label/Category:** description with **key numbers** in bold. Examples: * **Investment / Timeline:** $180K over **16 weeks** to fast-track SSO. * **Revenue Impact:** **$47K MRR** total (**$564K annually**). * **Churn Prevention:** Prevents **6 enterprise churns** → **$42K MRR saved**. Use **double asterisks** around numbers and key terms. Label can be 1-3 words (e.g. Payback Period, Customer Demand)."}
 
 Rules: All monetary values as plain numbers. Fan chart: exactly 12 points per series (M1-M12). Tornado: 4-6 factors. Histogram: 8-12 buckets. Scenario table: exactly 3 rows. Ground numbers in provided parameters. Return ONLY valid JSON."""
 
@@ -23,6 +23,7 @@ def _build_graph_description(
     node_structure: list[dict],
     edge_structure: list[dict],
     node_params: dict[str, dict[str, float]],
+    node_context: dict[str, dict[str, str]] | None = None,
 ) -> str:
     """Build a human-readable description of the simulation graph for Claude."""
     lines = [f"# Simulation: {template_name}\n"]
@@ -43,6 +44,14 @@ def _build_graph_description(
             lines.append("  Parameters:")
             for key, value in params.items():
                 lines.append(f"    - {key}: {value}")
+
+        ctx = (node_context or {}).get(node_id, {})
+        if ctx.get("user_message") or ctx.get("claude_reply"):
+            lines.append("  User-provided context:")
+            if ctx.get("user_message"):
+                lines.append(f"    User: {ctx['user_message']}")
+            if ctx.get("claude_reply"):
+                lines.append(f"    Guidance: {ctx['claude_reply']}")
         lines.append("")
 
     lines.append("## Causal Connections\n")
@@ -69,6 +78,7 @@ async def run_simulation(
     node_structure: list[dict],
     edge_structure: list[dict],
     dataset_id: str | None = None,
+    node_context: dict[str, dict[str, str]] | None = None,
 ) -> AsyncGenerator[dict, None]:
     """Run a graph-based simulation via Claude. Yields SSE events."""
 
@@ -78,7 +88,7 @@ async def run_simulation(
     yield {"type": "progress", "data": {"step": "Building simulation graph..."}}
 
     graph_description = _build_graph_description(
-        template_name, node_structure, edge_structure, node_params,
+        template_name, node_structure, edge_structure, node_params, node_context,
     )
 
     # Step 2: Optional dataset context

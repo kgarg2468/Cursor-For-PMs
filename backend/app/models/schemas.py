@@ -119,3 +119,14 @@ class RunGraphSimulationRequest(BaseModel):
     node_structure: list[dict]
     edge_structure: list[dict]
     dataset_id: Optional[str] = None
+    node_context: Optional[dict[str, dict[str, str]]] = None  # node_id -> { user_message, claude_reply }
+
+
+class NodeContextRequest(BaseModel):
+    node_label: str
+    node_type: str  # source | modifier | sink
+    user_message: str
+
+
+class NodeContextResponse(BaseModel):
+    reply: str
