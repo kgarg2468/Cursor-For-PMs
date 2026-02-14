@@ -5,6 +5,7 @@ import { CommandBar } from "./CommandBar";
 import { useCommandBar } from "@/hooks/useCommandBar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { InsightWizardPanel } from "@/components/dashboard/InsightWizardPanel";
+import { CopilotOverlay } from "@/components/copilot/CopilotOverlay";
 
 export const AppShell = () => {
   useCommandBar();
@@ -21,6 +22,7 @@ export const AppShell = () => {
           <InsightWizardPanel />
         </div>
         <CommandBar />
+        <CopilotOverlay />
       </div>
     </TooltipProvider>
   );

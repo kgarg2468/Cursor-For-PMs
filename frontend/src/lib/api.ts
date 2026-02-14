@@ -229,6 +229,34 @@ export const simulationsApi = {
     }),
 };
 
+// Copilot types & endpoints
+export type CopilotIntent = "navigate" | "quick_answer" | "generate_insight" | "run_simulation";
+
+export interface CopilotClassifyResponse {
+  intent: CopilotIntent;
+  confidence: number;
+  route: string | null;
+  refined_prompt: string | null;
+  focus_area: string | null;
+  simulation_focus: string | null;
+}
+
+export const copilotApi = {
+  classify: (prompt: string, datasetId?: string, currentRoute?: string) =>
+    request<CopilotClassifyResponse>("/copilot/classify", {
+      method: "POST",
+      body: JSON.stringify({
+        prompt,
+        dataset_id: datasetId,
+        current_route: currentRoute,
+      }),
+    }),
+
+  quickAnswerUrl: () => `${API_BASE}/copilot/quick-answer`,
+
+  generateInsightUrl: () => `${API_BASE}/copilot/generate-insight`,
+};
+
 // Chat endpoints
 export const chatApi = {
   createConversation: (title?: string) =>

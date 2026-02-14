@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.database import init_db
 from app.core.config import settings
-from app.api import data, insights, simulations, chat
+from app.api import data, insights, simulations, chat, copilot
 
 
 @asynccontextmanager
@@ -27,6 +27,7 @@ app.include_router(data.router)
 app.include_router(insights.router)
 app.include_router(simulations.router)
 app.include_router(chat.router)
+app.include_router(copilot.router)
 
 
 @app.get("/api/health")

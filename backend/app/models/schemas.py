@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Literal, Optional
 
 
 class DatasetResponse(BaseModel):
@@ -134,3 +134,30 @@ class NodeContextResponse(BaseModel):
 
 class PostAgenticArtifactRequest(BaseModel):
     type: str  # executive_one_pager | slack_update | email | pdf | jira_ticket | prd | meeting_agenda
+
+
+# Copilot schemas
+class CopilotClassifyRequest(BaseModel):
+    prompt: str
+    dataset_id: Optional[str] = None
+    current_route: Optional[str] = None
+
+
+class CopilotClassifyResponse(BaseModel):
+    intent: Literal["navigate", "quick_answer", "generate_insight", "run_simulation"]
+    confidence: float
+    route: Optional[str] = None
+    refined_prompt: Optional[str] = None
+    focus_area: Optional[str] = None
+    simulation_focus: Optional[str] = None
+
+
+class CopilotInsightRequest(BaseModel):
+    prompt: str
+    dataset_id: str
+    focus_area: Optional[str] = None
+
+
+class CopilotQuickAnswerRequest(BaseModel):
+    prompt: str
+    dataset_id: Optional[str] = None
