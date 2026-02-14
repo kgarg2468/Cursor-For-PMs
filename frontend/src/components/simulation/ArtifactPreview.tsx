@@ -97,6 +97,8 @@ export const ArtifactPreview = ({ artifacts, insightId }: ArtifactPreviewProps) 
   const appendArtifact = useSimulationStore((s: SimulationState) => s.appendArtifact);
   const slackConnected = useIntegrationsStore((s: IntegrationsState) => s.slackConnected);
   const gmailConnected = useIntegrationsStore((s: IntegrationsState) => s.gmailConnected);
+  const jiraConnected = useIntegrationsStore((s: IntegrationsState) => s.jiraConnected);
+  const notionConnected = useIntegrationsStore((s: IntegrationsState) => s.notionConnected);
 
   if (artifacts.length === 0) return null;
 
@@ -127,7 +129,14 @@ export const ArtifactPreview = ({ artifacts, insightId }: ArtifactPreviewProps) 
 
   const handleDraftInGmail = () => {
     // Stub: in production would call backend/MCP
-    // Could parse email content for subject/body
+  };
+
+  const handleCreateInJira = () => {
+    // Stub: in production would call Jira MCP or backend
+  };
+
+  const handleAddToNotion = () => {
+    // Stub: in production would call Notion MCP or backend
   };
 
   // Group artifacts by type
@@ -442,6 +451,28 @@ export const ArtifactPreview = ({ artifacts, insightId }: ArtifactPreviewProps) 
                         >
                           <Mail className="h-3.5 w-3.5" />
                           Draft in Gmail
+                        </Button>
+                      )}
+                      {type === "jira_ticket" && jiraConnected && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                          onClick={handleCreateInJira}
+                        >
+                          <Ticket className="h-3.5 w-3.5" />
+                          Create in Jira
+                        </Button>
+                      )}
+                      {(type === "prd" || type === "executive_one_pager") && notionConnected && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                          onClick={handleAddToNotion}
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                          Add to Notion
                         </Button>
                       )}
                     </div>
