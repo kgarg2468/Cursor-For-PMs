@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare, Mail, CheckCircle2, Ticket, FileText, Plug, ExternalLink } from "lucide-react";
 import { useIntegrationsStore } from "@/stores/integrationsStore";
 
+const MCP_SLACK_URL = "https://docs.slack.dev/ai/mcp-server";
+const MCP_GMAIL_URL = "https://docs.cloud.google.com/mcp/overview";
 const MCP_NOTION_URL = "https://developers.notion.com/docs/mcp";
 const MCP_JIRA_URL = "https://github.com/modelcontextprotocol/servers";
 const MCP_DOCS_URL = "https://modelcontextprotocol.io";
@@ -26,6 +28,7 @@ export const IntegrationsPage = () => {
       connected: slackConnected,
       setConnected: setSlackConnected,
       connectedHint: "When posting from an artifact, you'll choose the channel in the dialog.",
+      learnUrl: MCP_SLACK_URL,
     },
     {
       id: "gmail",
@@ -35,6 +38,7 @@ export const IntegrationsPage = () => {
       connected: gmailConnected,
       setConnected: setGmailConnected,
       connectedHint: '"Draft in Gmail" will appear on email artifacts in Simulations.',
+      learnUrl: MCP_GMAIL_URL,
     },
     {
       id: "jira",
