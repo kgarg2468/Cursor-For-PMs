@@ -4,6 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
   Mail,
   FileText,
   Ticket,
@@ -12,11 +26,31 @@ import {
   Copy,
   Eye,
   ChevronUp,
+  PlusCircle,
+  MessageSquare,
+  Send,
+  FileSignature,
+  LayoutList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { simulationsApi } from "@/lib/api";
+import { useSimulationStore, type SimulationState } from "@/stores/simulationStore";
+import { useIntegrationsStore, type IntegrationsState } from "@/stores/integrationsStore";
+
+export const ARTIFACT_TYPES = [
+  "executive_one_pager",
+  "slack_update",
+  "email",
+  "pdf",
+  "jira_ticket",
+  "prd",
+  "meeting_agenda",
+] as const;
+
+export type ArtifactType = (typeof ARTIFACT_TYPES)[number];
 
 export interface Artifact {
-  type: "email" | "pdf" | "jira_ticket" | "prd";
+  type: ArtifactType | string;
   title: string;
   content: string;
   metadata?: {
@@ -29,27 +63,72 @@ export interface Artifact {
 
 interface ArtifactPreviewProps {
   artifacts: Artifact[];
+  /** When set, shows "Generate another" and allows posting to Slack / Gmail when configured */
+  insightId?: string | null;
 }
 
-const typeIcons = {
+const typeIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   email: Mail,
   pdf: FileText,
   jira_ticket: Ticket,
   prd: FileCode,
+  executive_one_pager: FileSignature,
+  slack_update: MessageSquare,
+  meeting_agenda: LayoutList,
 };
 
-const typeLabels = {
+const typeLabels: Record<string, string> = {
   email: "Email Draft",
   pdf: "PDF Proposal",
   jira_ticket: "Jira Ticket",
   prd: "PRD Document",
+  executive_one_pager: "Executive One-Pager",
+  slack_update: "Slack Update",
+  meeting_agenda: "Meeting Agenda",
 };
 
-export const ArtifactPreview = ({ artifacts }: ArtifactPreviewProps) => {
+export const ArtifactPreview = ({ artifacts, insightId }: ArtifactPreviewProps) => {
   const [expandedArtifacts, setExpandedArtifacts] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [generatingType, setGeneratingType] = useState<string | null>(null);
+  const [slackChannel, setSlackChannel] = useState("");
+  const [slackDialogOpen, setSlackDialogOpen] = useState(false);
+  const [slackDialogContent, setSlackDialogContent] = useState("");
+  const appendArtifact = useSimulationStore((s: SimulationState) => s.appendArtifact);
+  const slackConnected = useIntegrationsStore((s: IntegrationsState) => s.slackConnected);
+  const gmailConnected = useIntegrationsStore((s: IntegrationsState) => s.gmailConnected);
 
   if (artifacts.length === 0) return null;
+
+  const handleGenerateAnother = async (type: string) => {
+    if (!insightId) return;
+    setGeneratingType(type);
+    try {
+      const { artifact } = await simulationsApi.postAgenticArtifact(insightId, type);
+      appendArtifact(artifact);
+    } catch (e) {
+      console.error("Failed to generate artifact:", e);
+    } finally {
+      setGeneratingType(null);
+    }
+  };
+
+  const openSlackDialog = (_id: string, content: string) => {
+    setSlackDialogContent(content);
+    setSlackChannel("#product");
+    setSlackDialogOpen(true);
+  };
+
+  const handlePostToSlack = () => {
+    // Stub: in production would call backend/MCP
+    setSlackDialogOpen(false);
+    setSlackDialogContent("");
+  };
+
+  const handleDraftInGmail = () => {
+    // Stub: in production would call backend/MCP
+    // Could parse email content for subject/body
+  };
 
   // Group artifacts by type
   const grouped = artifacts.reduce(
@@ -208,13 +287,42 @@ export const ArtifactPreview = ({ artifacts }: ArtifactPreviewProps) => {
     );
   };
 
+  const renderMarkdown = renderPRD;
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Generated Artifacts</h3>
-        <Badge variant="outline" className="text-xs">
-          {artifacts.length} artifact{artifacts.length !== 1 ? "s" : ""}
-        </Badge>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h3 className="text-sm font-semibold">Integrations</h3>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-xs">
+            {artifacts.length} artifact{artifacts.length !== 1 ? "s" : ""}
+          </Badge>
+          {insightId && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-2"
+                  disabled={!!generatingType}
+                >
+                  <PlusCircle className="h-3.5 w-3.5" />
+                  {generatingType ? `Generating ${generatingType}...` : "Generate another"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {ARTIFACT_TYPES.map((type) => (
+                  <DropdownMenuItem
+                    key={type}
+                    onSelect={() => handleGenerateAnother(type)}
+                  >
+                    {typeLabels[type] ?? type}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
 
       <Tabs defaultValue={Object.keys(grouped)[0]}>
@@ -224,7 +332,7 @@ export const ArtifactPreview = ({ artifacts }: ArtifactPreviewProps) => {
             return (
               <TabsTrigger key={type} value={type} className="gap-2">
                 {Icon && <Icon className="h-3.5 w-3.5" />}
-                {typeLabels[type as keyof typeof typeLabels]} ({grouped[type].length})
+                {typeLabels[type] ?? type} ({grouped[type].length})
               </TabsTrigger>
             );
           })}
@@ -260,18 +368,24 @@ export const ArtifactPreview = ({ artifacts }: ArtifactPreviewProps) => {
                     >
                       {type === "email" && renderEmailContent(artifact.content)}
                       {type === "jira_ticket" && renderJiraTicket(artifact.content)}
-                      {type === "prd" && renderPRD(artifact.content)}
+                      {(type === "prd" || type === "executive_one_pager" || type === "meeting_agenda") &&
+                        renderMarkdown(artifact.content)}
+                      {type === "slack_update" && (
+                        <div className="whitespace-pre-wrap font-mono text-xs">
+                          {artifact.content}
+                        </div>
+                      )}
                       {(type === "pdf" || (!type)) && (
                         <div className="whitespace-pre-wrap">{artifact.content}</div>
                       )}
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-border">
+                    {/* Actions: Copy always; Post to Slack / Draft in Gmail when configured */}
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
                       <Button
                         size="sm"
                         variant="outline"
-                        className="flex-1 gap-2"
+                        className="flex-1 gap-2 min-w-0"
                         onClick={() => toggleExpand(artifact._id)}
                       >
                         {isExpanded ? (
@@ -295,7 +409,7 @@ export const ArtifactPreview = ({ artifacts }: ArtifactPreviewProps) => {
                         <Copy className="h-3.5 w-3.5" />
                         {isCopied ? "Copied!" : "Copy"}
                       </Button>
-                      {(type === "pdf" || type === "prd") && (
+                      {(type === "pdf" || type === "prd" || type === "executive_one_pager" || type === "meeting_agenda") && (
                         <Button
                           size="sm"
                           variant="outline"
@@ -308,6 +422,28 @@ export const ArtifactPreview = ({ artifacts }: ArtifactPreviewProps) => {
                           Download
                         </Button>
                       )}
+                      {type === "slack_update" && slackConnected && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                          onClick={() => openSlackDialog(artifact._id, artifact.content)}
+                        >
+                          <Send className="h-3.5 w-3.5" />
+                          Post to Slack
+                        </Button>
+                      )}
+                      {type === "email" && gmailConnected && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                          onClick={handleDraftInGmail}
+                        >
+                          <Mail className="h-3.5 w-3.5" />
+                          Draft in Gmail
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -316,6 +452,36 @@ export const ArtifactPreview = ({ artifacts }: ArtifactPreviewProps) => {
           </TabsContent>
         ))}
       </Tabs>
+
+      <Dialog open={slackDialogOpen} onOpenChange={setSlackDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Post to Slack</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label className="text-sm text-muted-foreground">Channel</label>
+            <Input
+              value={slackChannel}
+              onChange={(e) => setSlackChannel(e.target.value)}
+              placeholder="#product"
+            />
+            {slackDialogContent && (
+              <p className="text-xs text-muted-foreground">
+                {slackDialogContent.length} characters to post
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSlackDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handlePostToSlack}>
+              <Send className="h-3.5 w-3.5 mr-2" />
+              Post
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

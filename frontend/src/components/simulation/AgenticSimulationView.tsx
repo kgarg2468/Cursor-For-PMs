@@ -539,7 +539,7 @@ export const AgenticSimulationView = () => {
 
       {artifacts.length > 0 && (
         <div className="border-t border-border p-6">
-          <ArtifactPreview artifacts={artifacts as Artifact[]} />
+          <ArtifactPreview artifacts={artifacts as Artifact[]} insightId={insightId} />
         </div>
       )}
     </div>

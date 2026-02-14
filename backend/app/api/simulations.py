@@ -8,6 +8,7 @@ from app.models.schemas import (
     RunGraphSimulationRequest,
     NodeContextRequest,
     NodeContextResponse,
+    PostAgenticArtifactRequest,
 )
 from app.services import simulation_engine, agentic_simulation, artifact_generator, claude_client
 
@@ -169,6 +170,69 @@ async def trigger_agentic_simulation(req: TriggerAgenticSimulationRequest) -> St
             "X-Accel-Buffering": "no",
         },
     )
+
+
+ALLOWED_ARTIFACT_TYPES = [
+    "executive_one_pager",
+    "slack_update",
+    "email",
+    "pdf",
+    "jira_ticket",
+    "prd",
+    "meeting_agenda",
+]
+
+
+@router.post("/agentic/{insight_id}/artifacts")
+async def post_agentic_artifact(insight_id: str, body: PostAgenticArtifactRequest) -> dict:
+    """Generate one more artifact of the given type and append to the last agentic run."""
+    if body.type not in ALLOWED_ARTIFACT_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid artifact type. Allowed: {ALLOWED_ARTIFACT_TYPES}",
+        )
+    db = await get_db()
+    try:
+        cursor = await db.execute(
+            """SELECT id, scenarios_json, comparison_data, winning_scenario_id, artifacts_json
+               FROM agentic_simulations
+               WHERE insight_id = ?
+               ORDER BY created_at DESC
+               LIMIT 1""",
+            (insight_id,),
+        )
+        row = await cursor.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Agentic simulation not found")
+        sim_id, scenarios_json, comparison_data, winning_scenario_id, artifacts_json = row
+        comparison = json.loads(comparison_data) if comparison_data else {}
+        scenarios = comparison.get("scenarios", [])
+        winning_scenario = None
+        for sc in scenarios:
+            if sc.get("scenario_id") == winning_scenario_id:
+                winning_scenario = sc
+                break
+        if not winning_scenario:
+            raise HTTPException(status_code=400, detail="Winning scenario not found")
+        existing_artifacts = json.loads(artifacts_json) if artifacts_json else []
+        new_artifacts = await artifact_generator.generate_artifacts(
+            insight_id,
+            winning_scenario,
+            winning_scenario,
+            requested_types=[body.type],
+        )
+        if not new_artifacts:
+            raise HTTPException(status_code=500, detail="Failed to generate artifact")
+        new_artifact = new_artifacts[0]
+        updated_list = existing_artifacts + [new_artifact]
+        await db.execute(
+            "UPDATE agentic_simulations SET artifacts_json = ? WHERE id = ?",
+            (json.dumps(updated_list), sim_id),
+        )
+        await db.commit()
+        return {"artifact": new_artifact}
+    finally:
+        await db.close()
 
 
 @router.get("/agentic/{insight_id}")

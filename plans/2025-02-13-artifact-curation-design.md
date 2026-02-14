@@ -90,10 +90,50 @@
 
 ---
 
-## 6. Files to touch
+## 6. Slack & Gmail integrations
+
+### 6.1 Placement (where artifacts show up)
+
+- **Same location as current “Generated Artifacts”** — the existing block in `AgenticSimulationView` (`border-t border-border p-6`, below the scenario tabs / results area) is the **Integrations** section.
+- No new tab or new panel. That block shows all generated artifacts (Slack, Gmail/email, and any others) with:
+  - **Copy** — always available.
+  - **Post to Slack** — when Slack is configured; user picks channel (dropdown/modal) then confirms.
+  - **Draft in Gmail** — when Gmail is configured; creates draft with subject + body (no recipient required for draft).
+
+### 6.2 Slack behavior
+
+- **Channel picker:** User selects channel (e.g. #product) before posting (dropdown or modal “Post to channel: [pick #channel]” then “Post”).
+- **Post** sends the artifact content (Slack message text) to the chosen channel via backend or MCP.
+
+### 6.3 Gmail behavior
+
+- **Draft in Gmail** creates a draft in the connected Gmail account with subject + body parsed from the email artifact. Post/draft options are available for **both** Slack and Gmail artifacts in that same section.
+
+### 6.4 Dedicated Integrations / MCP page
+
+- A **dedicated page** (e.g. `/integrations` or **Integrations** in nav) where users **configure** Slack and Gmail (connect accounts, OAuth, optionally default channel).
+- This page is the source of “integration available” — when Slack is connected, “Post to Slack” appears in the artifacts block; when Gmail is connected, “Draft in Gmail” appears.
+- MCP servers (or backend proxies to Slack/Gmail APIs) are configured from this page.
+
+### 6.5 Summary
+
+| Item | Choice |
+|------|--------|
+| Curation | B (filter/rank) + C (refine/redirect) |
+| First artifact types | Slack + Gmail (email) |
+| Support level | C: Generate + Copy always; Post / Draft when integration configured |
+| Slack destination | A: User picks channel (dropdown/modal) |
+| Gmail | Draft in Gmail button when configured |
+| Where artifacts show | Same DOM as current “Generated Artifacts” block (Integrations under graph) |
+| Config | Dedicated Integrations/MCP page for Slack + Gmail |
+
+---
+
+## 7. Files to touch
 
 - `backend/app/services/artifact_generator.py` – prompt, default type set, `requested_types`, new types.  
 - `backend/app/api/simulations.py` – POST `agentic/{insight_id}/artifacts`.  
-- `frontend/src/components/simulation/ArtifactPreview.tsx` – new types, “Generate another” dropdown.  
-- `frontend/src/lib/api.ts` – `postAgenticArtifact(insightId, type)`.  
-- `frontend/src/stores/simulationStore.ts` – append artifact (e.g. `appendArtifact(artifact)`).
+- `frontend/src/components/simulation/ArtifactPreview.tsx` – new types; **Integrations** section in same place as current “Generated Artifacts”; Copy + “Post to Slack” (channel picker) + “Draft in Gmail” when configured.  
+- `frontend/src/lib/api.ts` – `postAgenticArtifact(insightId, type)`; endpoints for post-to-Slack, create-Gmail-draft (or call MCP).  
+- `frontend/src/stores/simulationStore.ts` – append artifact (e.g. `appendArtifact(artifact)`).  
+- **New:** Integrations/MCP page (e.g. `frontend/src/pages/IntegrationsPage.tsx`, route `/integrations`) – configure Slack + Gmail; backend or MCP for OAuth and storing connection state.

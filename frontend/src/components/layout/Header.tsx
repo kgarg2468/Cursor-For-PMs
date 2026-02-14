@@ -7,6 +7,7 @@ import {
   Moon,
   Search,
   MessageSquare,
+  Plug,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/appStore";
@@ -16,6 +17,7 @@ const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/simulations", icon: FlaskConical, label: "Simulations" },
   { to: "/data", icon: Database, label: "Data" },
+  { to: "/integrations", icon: Plug, label: "Integrations" },
 ];
 
 export const Header = () => {
@@ -27,12 +29,14 @@ export const Header = () => {
   const searchParams = new URLSearchParams(location.search);
   const urlAgentic = searchParams.get("mode") === "agentic";
   const urlInsightId = searchParams.get("insightId");
-  const inAgenticView =
-    location.pathname === "/simulations" &&
-    ((urlAgentic && urlInsightId) || (agenticMode && insightId));
-  const simulationsTo = inAgenticView && (urlInsightId || insightId)
-    ? `/simulations?mode=agentic&insightId=${urlInsightId ?? insightId ?? ""}`
-    : "/simulations";
+  // Preserve agentic context from store or URL regardless of current path (e.g. from dashboard)
+  const hasAgenticContext =
+    (urlAgentic && urlInsightId) || (agenticMode && insightId);
+  const effectiveInsightId = urlInsightId ?? insightId ?? "";
+  const simulationsTo =
+    hasAgenticContext && effectiveInsightId
+      ? `/simulations?mode=agentic&insightId=${effectiveInsightId}`
+      : "/simulations";
 
   return (
     <header className="h-14 border-b border-border bg-card flex items-center px-4 gap-2 shrink-0">

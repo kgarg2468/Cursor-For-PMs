@@ -21,7 +21,7 @@ export interface AgenticScenarioItem {
   results: SimulationResults | null;
 }
 
-interface SimulationState {
+export interface SimulationState {
   selectedTemplate: SimTemplate | null;
   nodeParams: NodeParamValues;
   activeTab: SimTab;
@@ -74,6 +74,7 @@ interface SimulationState {
   setSelectedScenario: (scenarioId: string | null) => void;
   setComparisonData: (data: unknown) => void;
   setArtifacts: (artifacts: Array<{ type: string; content: string; title: string; metadata?: unknown }>) => void;
+  appendArtifact: (artifact: { type: string; content: string; title: string; metadata?: unknown }) => void;
   /** Update results for one scenario; if it's the selected one, also set top-level fanChart/etc. */
   setAgenticScenarioResults: (scenarioId: string, results: SimulationResults) => void;
   /** Sync selected scenario's template/params/results to selectedTemplate, nodeParams, fanChart/etc. */
@@ -243,6 +244,8 @@ export const useSimulationStore = create<SimulationState>((set) => ({
 
   setComparisonData: (data) => set({ comparisonData: data }),
   setArtifacts: (artifacts) => set({ artifacts }),
+  appendArtifact: (artifact) =>
+    set((state) => ({ artifacts: [...state.artifacts, artifact] })),
 
   setAgenticScenarioResults: (scenarioId, results) =>
     set((state) => {

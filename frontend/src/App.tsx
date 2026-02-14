@@ -3,6 +3,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { SimulationsPage } from "@/pages/SimulationsPage";
 import { DataSourcesPage } from "@/pages/DataSourcesPage";
+import { IntegrationsPage } from "@/pages/IntegrationsPage";
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/simulations" element={<SimulationsPage />} />
           <Route path="/data" element={<DataSourcesPage />} />
+          <Route path="/integrations" element={<IntegrationsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

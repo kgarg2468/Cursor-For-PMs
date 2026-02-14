@@ -136,11 +136,15 @@ Generate exactly {len(types_to_generate)} artifacts, one per requested type. Use
         
         # Ensure we have at least one artifact
         if not artifacts:
-            artifacts = _generate_fallback_artifacts(winning_scenario, insight_data)
+            artifacts = _generate_fallback_artifacts(
+                winning_scenario, insight_data, requested_types=types_to_generate
+            )
         
         return artifacts
     except json.JSONDecodeError:
-        return _generate_fallback_artifacts(winning_scenario, insight_data)
+        return _generate_fallback_artifacts(
+            winning_scenario, insight_data, requested_types=types_to_generate
+        )
 
 
 def _generate_fallback_artifacts(
@@ -171,6 +175,30 @@ def _generate_fallback_artifacts(
             "type": "slack_update",
             "title": f"Slack update: {scenario_name}",
             "content": f"Simulation result: {scenario_name}. Key outcomes: {summary[:200]}...",
+            "metadata": {},
+        })
+
+    # Meeting agenda
+    if "meeting_agenda" in types_wanted:
+        artifacts.append({
+            "type": "meeting_agenda",
+            "title": f"Meeting agenda: {scenario_name}",
+            "content": f"""# 30-min agenda: {scenario_name}
+
+## Context (2 min)
+{summary[:300]}
+
+## Numbers (5 min)
+- Review simulation outcomes
+- Key metrics from scenario
+
+## Decision (15 min)
+- Align on next steps
+- Owners and timeline
+
+## Next steps (5 min)
+- [ ] Action items
+- [ ] Follow-up""",
             "metadata": {},
         })
 
@@ -296,5 +324,14 @@ Best regards,
                 "sections": ["Overview", "Problem Statement", "Goals", "User Stories", "Success Metrics"],
             },
         })
-    
+
+    # Generic email when type is not retention/revenue (e.g. feature)
+    if "email" in types_wanted and scenario_type not in ("retention", "revenue"):
+        artifacts.append({
+            "type": "email",
+            "title": f"Update: {scenario_name}",
+            "content": f"Subject: Simulation outcome – {scenario_name}\n\n{summary}",
+            "metadata": {},
+        })
+
     return artifacts

@@ -213,12 +213,20 @@ export const simulationsApi = {
   getAgentic: (insightId: string) =>
     request<{
       id: string;
-      scenarios: any[];
-      comparison_data: any;
+      scenarios: unknown[];
+      comparison_data: unknown;
       winning_scenario_id: string;
-      artifacts: any[];
+      artifacts: Array<{ type: string; title: string; content: string; metadata?: unknown }>;
       created_at: string;
     }>(`/simulations/agentic/${insightId}`),
+
+  postAgenticArtifact: (insightId: string, type: string) =>
+    request<{
+      artifact: { type: string; title: string; content: string; metadata?: unknown };
+    }>(`/simulations/agentic/${insightId}/artifacts`, {
+      method: "POST",
+      body: JSON.stringify({ type }),
+    }),
 };
 
 // Chat endpoints

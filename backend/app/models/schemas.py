@@ -130,3 +130,7 @@ class NodeContextRequest(BaseModel):
 
 class NodeContextResponse(BaseModel):
     reply: str
+
+
+class PostAgenticArtifactRequest(BaseModel):
+    type: str  # executive_one_pager | slack_update | email | pdf | jira_ticket | prd | meeting_agenda
