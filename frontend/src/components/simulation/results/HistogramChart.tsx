@@ -46,7 +46,7 @@ export const HistogramChart = ({
           indexBy="range"
           margin={{ top: 10, right: 20, bottom: 50, left: 50 }}
           padding={0.15}
-          colors={["hsl(var(--primary))"]}
+          colors={["var(--primary)"]}
           borderRadius={3}
           axisBottom={{
             tickRotation: -35,
@@ -60,30 +60,30 @@ export const HistogramChart = ({
           enableGridY
           enableGridX={false}
           theme={{
-            text: { fill: "hsl(var(--foreground))" },
+            text: { fill: "var(--foreground)" },
             axis: {
               ticks: {
                 text: {
-                  fill: "hsl(var(--muted-foreground))",
+                  fill: "var(--muted-foreground)",
                   fontSize: 10,
                 },
               },
               legend: {
                 text: {
-                  fill: "hsl(var(--muted-foreground))",
+                  fill: "var(--muted-foreground)",
                   fontSize: 12,
                 },
               },
             },
             grid: {
-              line: { stroke: "hsl(var(--border))", strokeWidth: 1 },
+              line: { stroke: "var(--border)", strokeWidth: 1 },
             },
             tooltip: {
               container: {
-                background: "hsl(var(--card))",
-                color: "hsl(var(--foreground))",
+                background: "var(--card)",
+                color: "var(--foreground)",
                 borderRadius: "8px",
-                border: "1px solid hsl(var(--border))",
+                border: "1px solid var(--border)",
                 fontSize: 12,
               },
             },

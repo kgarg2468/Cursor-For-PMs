@@ -3,6 +3,8 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FlaskConical, Play, Loader2, Sparkles } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useSimulationStore } from "@/stores/simulationStore";
 import { useSimulation } from "@/hooks/useSimulation";
 import { TemplatePicker } from "@/components/simulation/TemplatePicker";
@@ -173,9 +175,19 @@ export const SimulationsPage = () => {
                         <h3 className="text-sm font-medium mb-1">
                           Executive Summary
                         </h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            p: ({ children }) => <p className="text-sm text-foreground/90 leading-relaxed mb-2 last:mb-0">{children}</p>,
+                            strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                            ul: ({ children }) => <ul className="list-disc list-inside text-sm text-foreground/90 mb-2 space-y-0.5">{children}</ul>,
+                            ol: ({ children }) => <ol className="list-decimal list-inside text-sm text-foreground/90 mb-2 space-y-0.5">{children}</ol>,
+                            li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                            h3: ({ children }) => <h3 className="text-sm font-semibold mt-2 mb-1 text-foreground">{children}</h3>,
+                          }}
+                        >
                           {summary}
-                        </p>
+                        </ReactMarkdown>
                       </div>
                     </div>
                   </CardContent>

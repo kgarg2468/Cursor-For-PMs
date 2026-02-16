@@ -51,7 +51,7 @@ export const FanChart = ({ data, loading, simulationName }: FanChartProps) => {
                 ? `$${(v / 1000).toFixed(0)}K`
                 : `$${v}`,
           }}
-          colors={["#ef4444", "hsl(var(--primary))", "#22c55e", "#6b7280"]}
+          colors={["#ef4444", "var(--primary)", "#22c55e", "#6b7280"]}
           lineWidth={2}
           pointSize={0}
           enableArea={false}
@@ -63,25 +63,25 @@ export const FanChart = ({ data, loading, simulationName }: FanChartProps) => {
               translateX: 110,
               itemWidth: 100,
               itemHeight: 20,
-              itemTextColor: "hsl(var(--muted-foreground))",
+              itemTextColor: "var(--muted-foreground)",
               symbolSize: 10,
               symbolShape: "circle",
             },
           ]}
           theme={{
-            text: { fill: "hsl(var(--foreground))" },
+            text: { fill: "var(--foreground)" },
             axis: {
-              ticks: { text: { fill: "hsl(var(--muted-foreground))", fontSize: 11 } },
-              legend: { text: { fill: "hsl(var(--muted-foreground))", fontSize: 12 } },
+              ticks: { text: { fill: "var(--muted-foreground)", fontSize: 11 } },
+              legend: { text: { fill: "var(--muted-foreground)", fontSize: 12 } },
             },
-            grid: { line: { stroke: "hsl(var(--border))", strokeWidth: 1 } },
-            crosshair: { line: { stroke: "hsl(var(--muted-foreground))", strokeWidth: 1 } },
+            grid: { line: { stroke: "var(--border)", strokeWidth: 1 } },
+            crosshair: { line: { stroke: "var(--muted-foreground)", strokeWidth: 1 } },
             tooltip: {
               container: {
-                background: "hsl(var(--card))",
-                color: "hsl(var(--foreground))",
+                background: "var(--card)",
+                color: "var(--foreground)",
                 borderRadius: "8px",
-                border: "1px solid hsl(var(--border))",
+                border: "1px solid var(--border)",
                 fontSize: 12,
               },
             },

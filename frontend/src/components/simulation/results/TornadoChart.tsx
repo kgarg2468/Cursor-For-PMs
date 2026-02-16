@@ -56,24 +56,24 @@ export const TornadoChart = ({
           enableGridX
           enableGridY={false}
           theme={{
-            text: { fill: "hsl(var(--foreground))" },
+            text: { fill: "var(--foreground)" },
             axis: {
               ticks: {
                 text: {
-                  fill: "hsl(var(--muted-foreground))",
+                  fill: "var(--muted-foreground)",
                   fontSize: 11,
                 },
               },
             },
             grid: {
-              line: { stroke: "hsl(var(--border))", strokeWidth: 1 },
+              line: { stroke: "var(--border)", strokeWidth: 1 },
             },
             tooltip: {
               container: {
-                background: "hsl(var(--card))",
-                color: "hsl(var(--foreground))",
+                background: "var(--card)",
+                color: "var(--foreground)",
                 borderRadius: "8px",
-                border: "1px solid hsl(var(--border))",
+                border: "1px solid var(--border)",
                 fontSize: 12,
               },
             },

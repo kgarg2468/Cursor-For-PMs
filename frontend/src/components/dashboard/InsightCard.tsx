@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import type { InsightResponse, InsightType } from "@/lib/api";
 import { insightsApi } from "@/lib/api";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useChatStore } from "@/stores/chatStore";
 import { useAppStore } from "@/stores/appStore";
 import { useActionPlanStore } from "@/stores/actionPlanStore";
@@ -95,36 +97,37 @@ const formatRevenue = (value: number | null): string | null => {
   return `${prefix}$${abs.toFixed(0)}`;
 };
 
-const renderMarkdown = (text: string) => {
-  const lines = text.split("\n");
-  const elements: React.ReactNode[] = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    if (line.startsWith("## ")) {
-      elements.push(
-        <h3 key={i} className="text-sm font-semibold mt-3 mb-1 text-foreground">
-          {line.slice(3)}
-        </h3>
-      );
-    } else if (line.startsWith("- ")) {
-      elements.push(
-        <li key={i} className="text-xs text-muted-foreground ml-4 list-disc">
-          {line.slice(2)}
-        </li>
-      );
-    } else if (line.trim() === "") {
-      elements.push(<div key={i} className="h-1" />);
-    } else {
-      elements.push(
-        <p key={i} className="text-xs text-muted-foreground leading-relaxed">
-          {line}
-        </p>
-      );
-    }
-  }
-  return elements;
-};
+const InsightMarkdown = ({ content }: { content: string }) => (
+  <ReactMarkdown
+    remarkPlugins={[remarkGfm]}
+    components={{
+      h1: ({ children }) => <h1 className="text-base font-bold mb-2 mt-3 text-foreground">{children}</h1>,
+      h2: ({ children }) => <h2 className="text-sm font-bold mb-1.5 mt-3 text-foreground">{children}</h2>,
+      h3: ({ children }) => <h3 className="text-sm font-bold mb-1 mt-2.5 text-foreground">{children}</h3>,
+      p: ({ children }) => <p className="text-xs text-foreground/80 leading-relaxed mb-1.5">{children}</p>,
+      strong: ({ children }) => <strong className="font-bold text-foreground">{children}</strong>,
+      ul: ({ children }) => <ul className="list-disc list-inside text-xs text-foreground/80 mb-1.5 space-y-0.5 ml-1">{children}</ul>,
+      ol: ({ children }) => <ol className="list-decimal list-inside text-xs text-foreground/80 mb-1.5 space-y-0.5 ml-1">{children}</ol>,
+      li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+      code: ({ className, children }) => {
+        const isBlock = className?.includes("language-");
+        if (isBlock) {
+          return (
+            <pre className="bg-muted rounded-md p-2 my-1.5 overflow-x-auto text-[10px]">
+              <code>{children}</code>
+            </pre>
+          );
+        }
+        return <code className="bg-muted px-1 py-0.5 rounded text-[10px] font-mono">{children}</code>;
+      },
+      blockquote: ({ children }) => (
+        <blockquote className="border-l-2 border-primary/40 pl-2 my-1.5 text-foreground/70 italic text-xs">{children}</blockquote>
+      ),
+    }}
+  >
+    {content}
+  </ReactMarkdown>
+);
 
 export const InsightCard = ({ insight }: InsightCardProps) => {
   const pinCard = useChatStore((s) => s.pinCard);
@@ -277,7 +280,7 @@ export const InsightCard = ({ insight }: InsightCardProps) => {
               <Skeleton className="h-3 w-2/3" />
             </div>
           ) : reasoning ? (
-            <div>{renderMarkdown(reasoning)}</div>
+            <InsightMarkdown content={reasoning} />
           ) : null}
 
           {/* Suggested questions — shown only in expanded view */}
@@ -286,7 +289,7 @@ export const InsightCard = ({ insight }: InsightCardProps) => {
               {suggestedQuestions.map((q, i) => (
                 <button
                   key={i}
-                  className="inline-flex items-center gap-1 text-[10px] text-muted-foreground bg-muted hover:bg-accent rounded-full px-2 py-0.5 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 text-[10px] text-foreground/80 bg-muted hover:bg-accent rounded-full px-2 py-0.5 transition-colors cursor-pointer"
                   onClick={() => {
                     setDraftMessage(q);
                     setSidePanelOpen(true);
