@@ -86,7 +86,7 @@ export const DashboardPage = () => {
             <Sparkles className="h-8 w-8 text-primary" />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Prism
+            PRISM
           </h1>
           <p className="text-muted-foreground max-w-md">
             Upload your product data or try with our sample dataset. AI will

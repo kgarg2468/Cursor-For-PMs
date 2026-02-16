@@ -48,7 +48,7 @@ export const Header = () => {
           className="w-7 h-7 rounded-lg object-cover"
         />
         <span className="font-semibold text-sm tracking-tight">
-          Prism
+          PRISM
         </span>
       </div>
 
