@@ -14,7 +14,7 @@ Prism changes that. It ingests your customer interviews, usage data, and support
 
 ## ✨ Key Features
 
-- **🔍 Multi-Source Ingestion**: Upload CSVs of customer usage, feedback, and CRM data.
+- **🔍 Multi-Source Ingestion**: Upload data of customer usage, feedback, and CRM data.
 - **🧠 Agentic Insights**: Opus 4.6 proactively identifies churn risks, growth opportunities, and correlations without you asking.
 - **📈 Market Simulations**: Run Monte Carlo simulations on strategic decisions (e.g., "Raise Enterprise Pricing") with confidence intervals.
 - **🔮 Agentic Scenarios**: The AI generates, parameterizes, and compares multiple futures to recommend the best path.
