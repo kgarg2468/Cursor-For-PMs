@@ -2,7 +2,7 @@
 
 ## The Narrative
 
-You are **Sarah Chen, VP of Product** at a mid-stage developer tools SaaS company (~500 accounts, $4M ARR). Your board meeting is in **48 hours**. The central strategic question:
+You are **VP of Product** at a mid-stage developer tools SaaS company (~500 accounts, $4M ARR). Your board meeting is in **48 hours**. The central strategic question:
 
 > "Should we double down on **enterprise sales** (bigger contracts, longer cycles, custom features) or invest in **self-serve PLG growth** (freemium expansion, activation optimization, virality loops)?"
 

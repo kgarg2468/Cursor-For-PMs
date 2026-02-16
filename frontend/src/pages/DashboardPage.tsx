@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sparkles, RefreshCw, ArrowUpDown, ClipboardList } from "lucide-react";
+import prismLogo from "@/assets/prism-logo.png";
 import { useNavigate } from "react-router-dom";
 import { useInsights } from "@/hooks/useInsights";
 import { KPIMetrics } from "@/components/dashboard/KPIMetrics";
@@ -82,9 +83,11 @@ export const DashboardPage = () => {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-6 px-4">
         <div className="text-center space-y-3">
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-            <Sparkles className="h-8 w-8 text-primary" />
-          </div>
+          <img
+            src={prismLogo}
+            alt="Prism"
+            className="w-16 h-16 rounded-2xl mx-auto"
+          />
           <h1 className="text-2xl font-semibold tracking-tight">
             PRISM
           </h1>
