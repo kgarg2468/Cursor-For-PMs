@@ -15,11 +15,11 @@ Prism changes that. It ingests your customer interviews, usage data, and support
 ## Key Features
 
 ### Automated AI Insights with Claude Opus 4.6
-![Automated AI Insights](assets/screenshots/dashboard_insights.png)
+![Data Ingestion](assets/screenshots/data-sources.png)
 Opus 4.6 acts as your always-on analyst. By ingesting your data, it automatically identifies trends, alerts, and hidden opportunities, presenting them as **AI Insight Cards**.
 - **Deep Context**: Expand each card to view the root cause, supporting evidence, and suggested next steps.
 - **Interactive Exploration**: Includes suggested questions to ask Opus 4.6 for further analysis.
-
+![AI Insights](assets/screenshots/dashboard.png)
 ### Contextual Pinning
 Never lose the thread of your analysis. Use the **Pin Feature** to lock the data and reasoning of any insight to the right-side agent.
 - **Focused Conversations**: Specify exactly what context Opus 4.6 should keep in mind.
@@ -37,7 +37,7 @@ Your generated next steps don't just disappear. They are organized into a cohesi
 - **Management**: Track progress and ensure the most critical items are addressed first.
 
 ### Agentic Market Simulations
-![Agentic Market Simulations](assets/screenshots/market_simulation.png)
+![Agentic Market Simulations](assets/screenshots/![AI Insights](assets/screenshots/dashboard.png).png)
 Inspired by Wall Street trading algorithms but re-engineered for product management. I've introduced a first-of-its-kind **Market Simulation** engine.
 - **Node-Based Interface**: Interact with simulations using a visual, node-based system (similar to n8n).
 - **Customizable Rules**: Change parameters and add custom rules. Opus 4.6 uses NLP to understand and apply your specific restrictions.
