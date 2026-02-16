@@ -103,6 +103,54 @@ async def load_demo_data() -> UploadResponse:
     )
 
 
+@router.post("/demo-v2", response_model=UploadResponse)
+async def load_demo_data_v2() -> UploadResponse:
+    import os
+    demo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "demo_dataset_v2.csv")
+
+    if not os.path.exists(demo_path):
+        raise HTTPException(status_code=404, detail="Demo dataset v2 not found")
+
+    df = pd.read_csv(demo_path)
+
+    dataset_id = str(uuid.uuid4())
+    columns = df.columns.tolist()
+    name = "Developer Tools SaaS — Q1 2026 (Demo)"
+
+    db = await get_db()
+    try:
+        await db.execute(
+            "INSERT INTO datasets (id, name, filename, row_count, columns_json) VALUES (?, ?, ?, ?, ?)",
+            (dataset_id, name, "demo_dataset_v2.csv", len(df), json.dumps(columns)),
+        )
+
+        for _, row in df.iterrows():
+            row_id = str(uuid.uuid4())
+            await db.execute(
+                "INSERT INTO dataset_rows (id, dataset_id, row_data) VALUES (?, ?, ?)",
+                (row_id, dataset_id, json.dumps(row.where(pd.notna(row), None).to_dict())),
+            )
+
+        await db.commit()
+    finally:
+        await db.close()
+
+    preview = df.head(20).where(pd.notna(df.head(20)), None).to_dict(orient="records")
+
+    return UploadResponse(
+        dataset=DatasetResponse(
+            id=dataset_id,
+            name=name,
+            filename="demo_dataset_v2.csv",
+            row_count=len(df),
+            columns=columns,
+        ),
+        preview=preview,
+        columns=columns,
+        row_count=len(df),
+    )
+
+
 @router.get("/datasets", response_model=list[DatasetResponse])
 async def list_datasets() -> list[DatasetResponse]:
     db = await get_db()

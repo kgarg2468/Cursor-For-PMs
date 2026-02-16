@@ -138,7 +138,7 @@ export const dataApi = {
     return res.json();
   },
 
-  loadDemo: () => request<UploadResponse>("/data/demo", { method: "POST" }),
+  loadDemo: () => request<UploadResponse>("/data/demo-v2", { method: "POST" }),
 
   list: () => request<DatasetResponse[]>("/data/datasets"),
 

@@ -1,0 +1,201 @@
+account_id,company_name,plan,mrr,signup_date,last_active,api_calls_30d,team_size,churned,churn_date,churn_reason,feature_requests,support_tickets_30d,nps_score,region
+ACC-0001,ansible-learner,enterprise,8443,2025-09-28,2025-12-06,23660,140,True,2025-12-19,no SSO/SAML capability,SSO/SAML; RBAC enhancements; GraphQL support,14,1,US
+ACC-0002,Nexus Integration Co,free,0,2025-07-16,2026-02-05,2490,2,False,,,SSO/SAML,0,7,US
+ACC-0003,StackPilot,free,0,2024-08-07,2026-01-28,3998,3,False,,,auto-scaling; SSO/SAML,0,9,US
+ACC-0004,Stratton Dynamics,pro,133,2025-07-21,2026-01-28,72039,4,False,,,rollback support; API rate limit increase; SSO/SAML,4,10,US
+ACC-0005,ramen-profitable,free,0,2024-07-16,2026-01-24,587,3,False,,,SSO/SAML; team permissions,2,8,US
+ACC-0006,PageDuty,free,0,2025-02-10,2026-01-24,1923,1,False,,,Slack notifications,0,7,APAC
+ACC-0007,yarn-lover,pro,86,2025-08-23,2026-01-29,36958,10,False,,,team permissions; SSO/SAML,2,6,EU
+ACC-0008,Beacon Finance Tech,free,0,2025-07-15,2026-01-21,1978,1,False,,,SSO/SAML,0,8,APAC
+ACC-0009,QueryPro,free,0,2026-01-26,2026-01-28,1396,1,False,,,audit logs,0,6,US
+ACC-0010,PubSubHQ,pro,140,2024-08-03,2026-01-27,72822,5,False,,,SSO/SAML; team permissions,3,7,EU
+ACC-0011,webpack-survivor,free,0,2026-02-01,2026-01-26,1314,3,False,,,SSO/SAML; audit logs; API rate limit increase,0,3,EU
+ACC-0012,auth0-free-tier,free,0,2025-02-07,2026-02-10,2598,3,False,,,SSO/SAML,0,6,US
+ACC-0013,next-js-fan,free,0,2024-08-22,2026-02-02,174,3,False,,,CLI improvements,0,5,EU
+ACC-0014,DesignToken,free,0,2025-03-24,2026-01-20,2002,3,False,,,2FA enforcement; API rate limit increase,0,5,EU
+ACC-0015,teams-reluctant,enterprise,9183,2025-05-22,2026-02-08,411896,22,False,,,SSO/SAML; RBAC enhancements; log streaming,14,3,US
+ACC-0016,APILayer,pro,197,2024-05-01,2026-02-03,53343,10,False,,,CLI improvements; SSO/SAML,0,5,US
+ACC-0017,BenchMark Co,enterprise,11706,2025-08-04,2025-12-16,29947,132,True,2025-12-24,missing SSO,SSO/SAML; custom domains; Slack notifications,7,1,APAC
+ACC-0018,curl-purist,free,0,2024-05-28,2026-02-01,426,1,False,,,API rate limit increase; log streaming,1,5,APAC
+ACC-0019,Cobalt Engineering,enterprise,6965,2025-06-07,2026-01-30,455895,129,False,,,webhook retries; Slack notifications,10,9,US
+ACC-0020,adobe-subscriber,enterprise,3676,2025-04-14,2026-02-04,210663,57,False,,,SSO/SAML; auto-scaling,14,2,EU
+ACC-0021,tailwind-maximalist,free,0,2025-10-05,2026-02-04,2468,2,False,,,API rate limit increase; SSO/SAML,0,6,APAC
+ACC-0022,DevCanvas,free,0,2024-07-03,2026-01-29,1037,3,False,,,SSO/SAML,1,3,EU
+ACC-0023,Ironclad Software,free,0,2025-02-06,2026-02-08,3611,3,False,,,team permissions,1,7,APAC
+ACC-0024,GridMaster,free,0,2024-04-28,2026-02-06,746,2,False,,,private networking; SSO/SAML,0,4,US
+ACC-0025,Horizon Insights,free,0,2024-04-03,2026-01-28,3129,1,False,,,SSO/SAML,2,3,APAC
+ACC-0026,StyleGuide,free,0,2024-09-21,2026-02-09,3339,3,False,,,SSO/SAML; team permissions,1,7,APAC
+ACC-0027,notion-power-user,free,0,2025-11-17,2026-01-21,3969,1,False,,,team permissions; SSO/SAML; API rate limit increase,0,8,US
+ACC-0028,github-copilot-fan,free,0,2024-03-26,2026-02-04,3837,2,False,,,multi-region deploy,0,7,EU
+ACC-0029,tiny-startup,free,0,2025-09-30,2026-02-06,1024,2,False,,,team permissions,0,4,APAC
+ACC-0030,ruby-on-rails-5ever,enterprise,8123,2024-03-14,2025-11-28,7227,55,True,2025-12-04,SSO compliance requirement,SSO/SAML,7,3,APAC
+ACC-0031,astro-builder,pro,181,2025-01-21,2026-01-28,30140,9,False,,,SSO/SAML,0,10,APAC
+ACC-0032,turbopack-beta,free,0,2024-06-23,2026-02-07,3583,3,False,,,API rate limit increase,1,5,US
+ACC-0033,Cascadia Cloud,enterprise,12054,2024-08-08,2025-12-10,3109,32,True,2025-12-22,missing SSO,SSO/SAML; 2FA enforcement; private networking,14,2,APAC
+ACC-0034,cursor-user,free,0,2025-07-19,2026-01-31,390,3,False,,,cost alerts; SSO/SAML; container registry,1,7,US
+ACC-0035,azure-curious,pro,81,2025-08-08,2026-01-20,52898,13,False,,,cost alerts,5,8,EU
+ACC-0036,railway-rider,free,0,2024-07-22,2026-02-08,3959,3,False,,,API rate limit increase; team permissions,2,6,EU
+ACC-0037,lucia-auth-fan,enterprise,3082,2025-11-20,2026-02-03,387894,41,False,,,webhook retries,15,9,US
+ACC-0038,zoom-fatigued,enterprise,14633,2025-05-10,2025-10-13,7188,123,True,2025-10-21,no SSO/SAML capability,SSO/SAML; GraphQL support; CLI improvements,16,3,EU
+ACC-0039,Clearwater Digital,pro,159,2024-12-10,2026-01-25,21324,11,False,,,SSO/SAML; env variable management,1,10,US
+ACC-0040,StreamLine,enterprise,10665,2025-12-22,2026-01-13,6310,42,True,2026-01-26,no SSO/SAML capability,SSO/SAML; log streaming; RBAC enhancements,8,3,APAC
+ACC-0041,hobby-coder,pro,216,2025-08-19,2025-11-21,1987,4,True,2025-11-30,missing features,SSO/SAML; GraphQL support,15,2,EU
+ACC-0042,postgres-loyalist,free,0,2025-05-11,2026-02-01,2656,2,False,,,SSO/SAML,0,5,APAC
+ACC-0043,WidgetLab,free,0,2025-09-08,2026-01-29,3475,2,False,,,RBAC enhancements,1,7,EU
+ACC-0044,Ridgeline DevTools,enterprise,11290,2024-11-29,2026-01-31,263880,109,False,,,webhook retries; API rate limit increase; Slack notifications,10,10,EU
+ACC-0045,ErrorLens,free,0,2025-03-13,2026-02-08,3704,2,False,,,API rate limit increase,0,4,US
+ACC-0046,Atlas Workforce,free,0,2024-08-08,2026-02-04,2580,2,False,,,API rate limit increase; SSO/SAML,0,3,EU
+ACC-0047,MotionUI,pro,110,2025-03-24,2026-02-03,53483,12,False,,,private networking; SSO/SAML,0,5,US
+ACC-0048,Harbourfront Tech,free,0,2024-04-18,2026-01-14,29,3,True,2026-01-18,support response time,SSO/SAML,18,4,APAC
+ACC-0049,WebhookRelay,pro,110,2024-08-14,2026-01-22,53407,5,False,,,SSO/SAML,6,5,APAC
+ACC-0050,Windermere Corp,free,0,2025-08-27,2026-02-02,3136,1,False,,,SSO/SAML,0,3,APAC
+ACC-0051,Redwood Infra,free,0,2025-05-08,2026-02-04,301,2,False,,,SSO/SAML,0,4,APAC
+ACC-0052,stripe-integrator,free,0,2025-04-24,2026-02-09,331,2,False,,,API rate limit increase; SSO/SAML,1,7,US
+ACC-0053,Titanium Systems,enterprise,14481,2025-10-23,2025-12-29,3353,67,True,2025-12-31,security requirements not met,SSO/SAML; audit logs,15,1,APAC
+ACC-0054,render-deployer,pro,146,2025-11-04,2026-01-30,63957,15,False,,,API rate limit increase; team permissions,1,10,APAC
+ACC-0055,Ironbridge Solutions,free,0,2025-10-07,2026-02-03,717,2,False,,,SSO/SAML,1,3,EU
+ACC-0056,Pinnacle SaaS Corp,enterprise,8531,2024-08-31,2026-01-07,4023,96,True,2026-01-10,support response time,SSO/SAML; private networking,12,4,EU
+ACC-0057,datadog-trial,enterprise,4744,2026-01-02,2026-01-31,305750,125,False,,,GitHub integration; Slack notifications,2,9,APAC
+ACC-0058,RunDeck,free,0,2025-03-12,2026-01-31,3295,2,False,,,SSO/SAML,0,3,APAC
+ACC-0059,insomnia-fan,enterprise,7816,2026-02-06,2026-02-06,365576,23,False,,,GitHub integration,8,9,EU
+ACC-0060,hackathon-team-7,free,0,2025-03-10,2026-01-29,3795,3,False,,,SSO/SAML,0,4,APAC
+ACC-0061,PipelineHQ,pro,237,2025-02-20,2026-02-06,67786,3,False,,,webhook retries; SSO/SAML,3,6,US
+ACC-0062,ProfilerX,pro,105,2024-04-19,2026-01-22,58875,2,False,,,SSO/SAML,6,9,US
+ACC-0063,Vanguard Dataworks,pro,183,2024-11-30,2026-01-31,65827,5,False,,,SSO/SAML,1,7,EU
+ACC-0064,CloudBridge,free,0,2025-11-26,2026-02-06,725,3,False,,,team permissions; API rate limit increase,1,5,EU
+ACC-0065,Vantage Point AI,enterprise,5109,2024-05-17,2026-02-02,180502,79,False,,,SSO/SAML; usage analytics dashboard; IP allowlisting,11,2,EU
+ACC-0066,trial-account,enterprise,10632,2024-09-08,2025-10-31,9670,17,True,2025-11-02,no SSO/SAML capability,SSO/SAML,12,2,APAC
+ACC-0067,DashForge,free,0,2024-04-29,2026-01-31,1651,1,False,,,SSO/SAML,1,5,APAC
+ACC-0068,garage-labs,pro,166,2024-08-28,2026-01-28,20167,6,False,,,audit logs; team permissions; multi-region deploy,1,6,EU
+ACC-0069,CodeVault,free,0,2025-08-29,2026-01-28,2848,1,False,,,SSO/SAML; API rate limit increase,1,5,EU
+ACC-0070,kafka-streamer,pro,231,2025-11-27,2026-01-24,45615,14,False,,,SSO/SAML; cost alerts; API rate limit increase,2,6,US
+ACC-0071,gumroad-seller,pro,105,2025-03-19,2026-01-26,48230,3,False,,,audit logs; API rate limit increase,5,5,US
+ACC-0072,Keystone Platforms,pro,190,2024-12-05,2026-01-22,34408,12,False,,,team permissions,1,5,US
+ACC-0073,Broadleaf Technologies,pro,103,2025-01-02,2026-01-28,73393,10,False,,,cost alerts; SSO/SAML,6,10,EU
+ACC-0074,vitest-convert,free,0,2025-09-22,2026-02-04,3885,3,False,,,team permissions,0,7,US
+ACC-0075,indie-saas,pro,216,2025-03-29,2026-01-22,10725,8,False,,,API rate limit increase; 2FA enforcement,3,5,US
+ACC-0076,UptimeBot,free,0,2025-12-02,2026-01-31,3971,1,False,,,SSO/SAML,1,5,APAC
+ACC-0077,StatusCake Pro,free,0,2024-09-16,2026-02-03,3962,3,False,,,SSO/SAML,1,7,US
+ACC-0078,BuildKite Pro,free,0,2025-06-11,2026-01-31,757,2,False,,,SSO/SAML; team permissions,0,9,EU
+ACC-0079,LakeHouse,pro,130,2025-04-28,2026-01-22,59975,8,False,,,container registry; CLI improvements,6,7,APAC
+ACC-0080,fly-io-flyer,pro,163,2024-10-12,2026-02-06,19648,15,False,,,team permissions,1,6,APAC
+ACC-0081,httpie-cli,free,0,2024-09-28,2026-01-29,2598,2,False,,,team permissions; GraphQL support,1,8,US
+ACC-0082,bun-early-adopter,free,0,2024-03-29,2025-11-08,17,2,True,2025-11-17,team downsized,private networking; SSO/SAML; API rate limit increase,7,2,EU
+ACC-0083,mongo-flexible,free,0,2025-01-09,2026-01-24,28,2,True,2026-01-24,internal tooling built,team permissions; CLI improvements; API rate limit increase,7,3,EU
+ACC-0084,pet-project,free,0,2024-11-09,2025-11-20,11,3,True,2025-12-02,switched to competitor,SSO/SAML; API rate limit increase,5,1,US
+ACC-0085,NovaCrest Financial,free,0,2025-11-13,2026-01-30,2649,1,False,,,SSO/SAML,0,3,APAC
+ACC-0086,netlify-user,pro,192,2024-05-31,2026-01-21,34050,14,False,,,SSO/SAML,2,8,US
+ACC-0087,weekend-project,free,0,2024-03-15,2026-01-26,198,2,False,,,API rate limit increase; env variable management; GraphQL support,0,5,US
+ACC-0088,cypress-classic,free,0,2024-05-06,2026-01-22,70,1,False,,,SSO/SAML,0,3,US
+ACC-0089,mvp-factory,free,0,2024-04-01,2026-01-29,72,3,False,,,SSO/SAML,0,4,US
+ACC-0090,grafana-oss,enterprise,9612,2025-03-16,2026-01-04,16139,35,True,2026-01-17,SSO compliance requirement,SSO/SAML; rollback support,18,3,US
+ACC-0091,vite-convert,pro,99,2024-03-27,2026-01-24,62876,9,False,,,API rate limit increase,6,9,APAC
+ACC-0092,python-forever,free,0,2025-05-16,2026-02-04,133,2,False,,,API rate limit increase; SSO/SAML,1,3,APAC
+ACC-0093,BlueShore Analytics,free,0,2024-08-23,2026-01-26,2062,1,False,,,GitHub integration,0,3,EU
+ACC-0094,LoadRunner Pro,enterprise,12571,2025-02-21,2026-01-20,19476,37,True,2026-02-01,missing SSO,SSO/SAML; 2FA enforcement,15,2,APAC
+ACC-0095,obsidian-vault,free,0,2025-06-07,2026-01-30,1336,2,False,,,team permissions; SSO/SAML,0,9,US
+ACC-0096,FontEnd Pro,free,0,2025-07-25,2026-01-24,3750,2,False,,,API rate limit increase; SSO/SAML,1,8,US
+ACC-0097,freemium-user,free,0,2026-01-08,2026-01-25,1590,2,False,,,private networking,0,4,US
+ACC-0098,side-project-42,free,0,2025-07-24,2026-01-25,2395,1,False,,,multi-region deploy; SSO/SAML; Slack notifications,1,5,EU
+ACC-0099,neon-db-user,enterprise,13171,2024-07-18,2025-10-29,2228,113,True,2025-11-01,missing SSO,SSO/SAML,10,2,APAC
+ACC-0100,localhost-hero,free,0,2026-01-19,2026-01-20,3262,3,False,,,team permissions; SSO/SAML,0,3,APAC
+ACC-0101,elixir-alchemist,pro,216,2025-05-29,2026-01-21,21794,5,False,,,API rate limit increase,3,9,US
+ACC-0102,Northstar Platforms,pro,128,2025-05-03,2026-02-09,69683,10,False,,,API rate limit increase,5,9,APAC
+ACC-0103,rabbit-queuer,pro,182,2025-10-05,2026-01-11,389,10,True,2026-01-23,budget cuts,SSO/SAML; API rate limit increase,13,4,EU
+ACC-0104,FlowState,enterprise,9432,2026-01-17,2026-02-08,255316,62,False,,,webhook retries; custom domains,9,9,EU
+ACC-0105,PixelSnap,free,0,2025-03-21,2026-01-30,3571,2,False,,,SSO/SAML,1,8,EU
+ACC-0106,docker-fan,enterprise,4952,2025-02-15,2026-01-21,463013,23,False,,,webhook retries; multi-region deploy,3,10,APAC
+ACC-0107,planetscale-fan,free,0,2024-04-25,2026-02-09,557,1,False,,,SSO/SAML; team permissions,0,3,US
+ACC-0108,TokenGuard,free,0,2025-10-11,2026-02-06,2734,2,False,,,SSO/SAML,0,3,US
+ACC-0109,Apex Logistics Group,free,0,2024-03-24,2026-01-26,3810,3,False,,,SSO/SAML,0,4,EU
+ACC-0110,deno-explorer,free,0,2024-06-01,2026-01-31,3499,1,False,,,SSO/SAML,1,3,APAC
+ACC-0111,DocuSync,free,0,2024-11-15,2025-12-15,64,1,True,2025-12-20,project discontinued,API rate limit increase,10,2,APAC
+ACC-0112,redis-cache-king,free,0,2024-06-06,2026-01-24,806,1,False,,,env variable management,0,9,EU
+ACC-0113,AlertOps,free,0,2025-08-09,2026-02-03,2038,2,False,,,SSO/SAML,0,5,APAC
+ACC-0114,DataMesh,enterprise,10344,2024-08-04,2026-01-22,10650,83,True,2026-01-28,SSO compliance requirement,SSO/SAML; Slack notifications; CLI improvements,17,2,EU
+ACC-0115,Ashford Digital,pro,241,2024-04-23,2026-01-25,72254,6,False,,,team permissions; SSO/SAML,6,10,APAC
+ACC-0116,terraform-noob,free,0,2025-06-03,2026-01-22,967,3,False,,,SSO/SAML,0,5,US
+ACC-0117,Blackrock DevOps,free,0,2025-01-24,2026-01-20,1215,3,False,,,SSO/SAML; webhook retries,0,5,APAC
+ACC-0118,ComponentHub,enterprise,9802,2026-01-23,2026-02-11,15257,52,True,2026-02-22,no SAML support,SSO/SAML; RBAC enhancements,15,2,APAC
+ACC-0119,SchemaForge,enterprise,3166,2024-06-01,2026-02-08,476764,112,False,,,SSO/SAML; CLI improvements,6,3,APAC
+ACC-0120,vue-enthusiast,free,0,2025-10-15,2026-01-29,3354,1,False,,,team permissions,0,9,EU
+ACC-0121,DeployFast,pro,186,2024-06-20,2026-02-01,8540,9,False,,,SSO/SAML; API rate limit increase,3,10,US
+ACC-0122,playwright-e2e,enterprise,11949,2024-12-16,2026-01-21,341914,144,False,,,API rate limit increase,12,8,EU
+ACC-0123,Osprey Networks,pro,125,2024-08-04,2026-01-21,77826,9,False,,,team permissions; SSO/SAML,0,5,US
+ACC-0124,esbuild-speed,pro,232,2025-07-25,2026-02-04,61425,12,False,,,SSO/SAML,6,9,APAC
+ACC-0125,CertWatch,enterprise,9369,2024-06-20,2026-01-29,553,32,True,2026-01-30,missing SSO,SSO/SAML; private networking; Slack notifications,13,2,APAC
+ACC-0126,prometheus-scraper,free,0,2024-12-26,2026-01-25,2090,3,False,,,SSO/SAML,0,9,US
+ACC-0127,Magellan Cloud Inc,free,0,2024-07-16,2026-01-28,3551,2,False,,,SSO/SAML,0,6,APAC
+ACC-0128,rust-curious,pro,148,2025-03-11,2026-01-26,29706,12,False,,,SSO/SAML,5,8,US
+ACC-0129,clerk-auth,enterprise,10334,2025-05-06,2026-02-08,162986,31,False,,,SSO/SAML; audit logs,13,3,APAC
+ACC-0130,RedisManaged,free,0,2024-09-19,2026-01-29,1276,2,False,,,env variable management; SSO/SAML; audit logs,0,7,EU
+ACC-0131,jest-tester,free,0,2025-09-22,2026-01-21,3317,1,False,,,SSO/SAML,0,6,US
+ACC-0132,sqlite-simple,enterprise,11245,2026-02-02,2026-02-24,5148,52,True,2026-03-04,enterprise security policy violation,SSO/SAML; audit logs,13,1,EU
+ACC-0133,VaultKey,pro,123,2024-06-11,2026-02-07,43797,13,False,,,SSO/SAML; Slack notifications,5,10,APAC
+ACC-0134,slack-overload,pro,117,2025-02-27,2026-02-08,31727,2,False,,,SSO/SAML,2,8,US
+ACC-0135,sketch-holdout,enterprise,11207,2025-09-15,2026-01-26,326178,34,False,,,SSO/SAML; env variable management,5,3,EU
+ACC-0136,student-dev,pro,87,2025-04-26,2026-02-02,41909,7,False,,,team permissions,2,9,US
+ACC-0137,discord-native,enterprise,9730,2024-11-30,2026-01-21,380263,120,False,,,SSO/SAML; RBAC enhancements,6,3,US
+ACC-0138,SnapDeploy,free,0,2024-03-29,2026-01-20,1927,3,False,,,team permissions; GitHub integration,0,4,US
+ACC-0139,tabnine-og,pro,188,2025-02-26,2026-01-21,41795,14,False,,,SSO/SAML; team permissions; log streaming,6,10,EU
+ACC-0140,solofounder-io,enterprise,13091,2026-01-30,2026-02-16,576,25,True,2026-03-01,SSO compliance requirement,SSO/SAML,16,2,EU
+ACC-0141,css-purist,enterprise,7681,2026-02-09,2026-01-28,241792,106,False,,,SSO/SAML,7,2,US
+ACC-0142,paddle-billing,pro,168,2025-06-24,2026-02-10,40418,11,False,,,webhook retries; API rate limit increase; multi-region deploy,5,5,EU
+ACC-0143,LogPulse,pro,238,2025-07-11,2026-01-21,45151,11,False,,,SSO/SAML; multi-region deploy,5,6,US
+ACC-0144,npm-addict,free,0,2024-09-18,2026-02-09,1616,3,False,,,GitHub integration; SSO/SAML,2,4,US
+ACC-0145,TestGrid,pro,146,2024-12-17,2026-02-05,9515,7,False,,,SSO/SAML; team permissions,4,7,US
+ACC-0146,GitForge,pro,162,2024-07-01,2026-01-25,77891,6,False,,,team permissions,3,5,EU
+ACC-0147,CacheTier,pro,171,2025-07-01,2026-01-20,61764,11,False,,,SSO/SAML,4,9,US
+ACC-0148,bootstrapdev,free,0,2025-12-15,2026-01-23,2698,2,False,,,SSO/SAML; CLI improvements,0,3,US
+ACC-0149,vercel-deployer,pro,194,2025-05-27,2026-02-03,58578,5,False,,,env variable management; API rate limit increase; SSO/SAML,6,10,EU
+ACC-0150,ObjectStore,pro,189,2025-07-27,2026-01-22,38215,12,False,,,SSO/SAML; log streaming,1,5,EU
+ACC-0151,AssetPipe,free,0,2024-11-13,2026-01-26,3410,3,False,,,team permissions; GitHub integration; rollback support,0,7,APAC
+ACC-0152,postcss-fan,free,0,2024-06-05,2026-02-04,645,3,False,,,API rate limit increase; SSO/SAML,0,3,EU
+ACC-0153,remix-curious,free,0,2024-08-18,2026-02-05,3472,2,False,,,SSO/SAML; API rate limit increase; usage analytics dashboard,1,9,US
+ACC-0154,open-source-fan,free,0,2026-01-03,2026-02-03,2239,1,False,,,SSO/SAML; container registry,0,6,US
+ACC-0155,logseq-graph,pro,204,2024-06-12,2025-12-22,1296,9,True,2025-12-28,team downsized,SSO/SAML,10,3,US
+ACC-0156,ShipIt Labs,free,0,2025-11-28,2026-02-05,832,3,False,,,private networking; 2FA enforcement; team permissions,1,5,US
+ACC-0157,MetricWire,pro,195,2025-07-26,2026-01-22,72109,9,False,,,private networking; API rate limit increase,1,5,US
+ACC-0158,cody-tester,enterprise,4411,2024-04-24,2026-02-03,169576,45,False,,,SSO/SAML; webhook retries; auto-scaling,14,3,EU
+ACC-0159,QueueMaster,free,0,2025-05-23,2026-01-30,178,2,False,,,SSO/SAML; team permissions; API rate limit increase,0,9,US
+ACC-0160,svelte-convert,pro,124,2025-09-22,2026-02-08,36026,13,False,,,team permissions; SSO/SAML; log streaming,6,5,US
+ACC-0161,Palantyne Security,enterprise,6466,2024-11-18,2026-01-30,142583,40,False,,,SSO/SAML; container registry,5,3,APAC
+ACC-0162,Falcon Edge Computing,free,0,2025-11-22,2026-02-05,1905,1,False,,,SSO/SAML; GraphQL support,0,5,EU
+ACC-0163,Evergreen Data Corp,free,0,2025-06-03,2026-01-26,616,1,False,,,SSO/SAML,1,5,APAC
+ACC-0164,ThemeKit,free,0,2024-06-29,2026-02-06,3694,2,False,,,SSO/SAML,0,5,EU
+ACC-0165,mysql-legacy,enterprise,7845,2024-02-24,2026-01-27,100750,116,False,,,SSO/SAML; multi-region deploy,10,2,EU
+ACC-0166,free-tier-max,enterprise,6364,2024-12-23,2026-01-23,237186,64,False,,,SSO/SAML,7,4,APAC
+ACC-0167,ChartBrew,free,0,2024-05-16,2026-02-05,3738,1,False,,,SSO/SAML; team permissions,0,9,EU
+ACC-0168,canva-quick,free,0,2024-12-06,2025-10-16,50,1,True,2025-10-22,support response time,rollback support; team permissions; API rate limit increase,15,4,US
+ACC-0169,node-warrior,free,0,2024-08-13,2026-02-01,3756,3,False,,,API rate limit increase; SSO/SAML,1,3,EU
+ACC-0170,sass-defender,free,0,2026-02-09,2026-01-31,648,3,False,,,SSO/SAML; team permissions,0,9,APAC
+ACC-0171,lemon-squeezy,pro,92,2024-09-25,2026-01-20,12736,9,False,,,SSO/SAML,3,7,US
+ACC-0172,angular-holdout,free,0,2025-02-18,2026-01-30,1891,1,False,,,SSO/SAML; IP allowlisting; API rate limit increase,0,8,EU
+ACC-0173,k8s-newbie,free,0,2025-01-27,2026-01-28,2561,1,False,,,API rate limit increase,1,3,US
+ACC-0174,IconForge,enterprise,5083,2025-11-03,2026-01-24,311307,104,False,,,webhook retries; GitHub integration,6,8,APAC
+ACC-0175,Riverview Logistics,enterprise,7642,2024-11-06,2026-02-04,220942,88,False,,,GitHub integration; team permissions,14,9,EU
+ACC-0176,firebase-refugee,free,0,2025-11-07,2026-02-09,829,3,False,,,RBAC enhancements; SSO/SAML,1,8,APAC
+ACC-0177,postman-tester,pro,127,2025-11-19,2026-02-06,66087,5,False,,,API rate limit increase,6,8,EU
+ACC-0178,gcp-functions,free,0,2025-07-17,2025-10-06,104,1,True,2025-10-13,support response time,API rate limit increase; 2FA enforcement,7,3,APAC
+ACC-0179,SecureScan,free,0,2024-10-12,2026-02-07,3353,3,False,,,SSO/SAML,0,3,APAC
+ACC-0180,LayoutKit,free,0,2025-06-07,2026-01-26,158,3,False,,,multi-region deploy,0,4,APAC
+ACC-0181,Omega Compliance Inc,free,0,2024-06-24,2026-02-02,1171,2,False,,,SSO/SAML,0,8,US
+ACC-0182,figma-designer,pro,147,2024-02-22,2026-01-26,23654,2,False,,,API rate limit increase; SSO/SAML,2,10,APAC
+ACC-0183,react-dev-42,free,0,2026-01-07,2026-01-24,738,2,False,,,API rate limit increase,0,8,APAC
+ACC-0184,FileSync,free,0,2025-01-22,2026-02-04,1683,2,False,,,Slack notifications; API rate limit increase; rollback support,0,7,US
+ACC-0185,Granite Health IT,pro,135,2025-07-26,2026-01-25,11832,9,False,,,SSO/SAML,0,8,APAC
+ACC-0186,Crestline Solutions,pro,178,2024-03-11,2025-10-11,3609,9,True,2025-10-19,budget cuts,SSO/SAML,14,4,US
+ACC-0187,TraceView,pro,206,2024-10-14,2026-02-02,74094,11,False,,,team permissions; auto-scaling,3,7,US
+ACC-0188,aws-lambda-fan,pro,186,2025-09-23,2026-02-01,13669,4,False,,,team permissions; SSO/SAML,5,8,US
+ACC-0189,elastic-searcher,pro,151,2025-01-13,2026-02-04,70407,12,False,,,SSO/SAML,1,8,EU
+ACC-0190,Basalt Infrastructure,pro,187,2024-10-06,2026-02-10,59008,12,False,,,SSO/SAML,6,7,EU
+ACC-0191,go-gopher,pro,222,2024-05-18,2026-01-22,23797,15,False,,,API rate limit increase; SSO/SAML,0,10,EU
+ACC-0192,CIStream,pro,158,2025-11-27,2026-02-07,22678,7,False,,,SSO/SAML,3,10,APAC
+ACC-0193,EventBridge,pro,198,2024-03-03,2026-02-05,45664,6,False,,,API rate limit increase; team permissions; SSO/SAML,6,6,EU
+ACC-0194,FormBuilder,free,0,2025-07-03,2026-02-10,701,2,False,,,private networking; SSO/SAML,0,9,US
+ACC-0195,Sterling API Co,free,0,2025-07-05,2026-01-24,3033,2,False,,,SSO/SAML,0,3,EU
+ACC-0196,TableView,enterprise,5878,2025-12-14,2026-02-01,284285,57,False,,,SSO/SAML; usage analytics dashboard,5,3,US
+ACC-0197,Meridian Health Systems,pro,179,2025-04-23,2026-02-02,71084,3,False,,,API rate limit increase; SSO/SAML,2,9,APAC
+ACC-0198,sentry-monitorer,pro,224,2024-05-22,2026-02-05,44562,2,False,,,team permissions; usage analytics dashboard; SSO/SAML,3,6,APAC
+ACC-0199,supabase-stan,free,0,2024-06-29,2026-01-29,1516,3,False,,,team permissions; SSO/SAML; API rate limit increase,0,7,APAC
+ACC-0200,linear-board,free,0,2024-07-24,2026-02-02,3289,3,False,,,GraphQL support; SSO/SAML,1,6,APAC

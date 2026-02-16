@@ -110,11 +110,10 @@ export const DataSourcesPage = () => {
       {/* Upload Area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card
-          className={`lg:col-span-2 border-dashed border-2 transition-colors cursor-pointer ${
-            isDragging
+          className={`lg:col-span-2 border-dashed border-2 transition-colors cursor-pointer ${isDragging
               ? "border-primary bg-primary/5"
               : "border-border hover:border-primary/50"
-          }`}
+            }`}
           onDragOver={(e) => {
             e.preventDefault();
             setIsDragging(true);
@@ -158,9 +157,9 @@ export const DataSourcesPage = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              Load our demo dataset: a developer tools SaaS platform with ~500
-              accounts, complete with usage data, churn signals, and feature
-              requests.
+              Load our demo dataset: a developer tools SaaS platform with 200
+              accounts and Q1 2026 product data — usage metrics, churn signals,
+              and feature requests.
             </p>
             <Button
               className="w-full"
