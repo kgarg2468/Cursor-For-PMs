@@ -12,9 +12,9 @@ export const ThinkingPanel = () => {
   if (!thinkingPanelOpen) return null;
 
   return (
-    <div className="w-[380px] shrink-0 border-r border-border bg-card flex flex-col h-full">
+    <div className="w-[380px] shrink-0 border-r border-white/[0.06] glass flex flex-col h-full">
       {/* Header */}
-      <div className="h-12 border-b border-border flex items-center px-3 gap-2 shrink-0">
+      <div className="h-12 border-b border-white/[0.06] flex items-center px-3 gap-2 shrink-0">
         <Brain className="h-4 w-4 text-primary" />
         <span className="text-sm font-medium flex-1">Claude's Reasoning</span>
         {isActive && (

@@ -46,17 +46,19 @@ export const KPIMetrics = ({ kpis, isLoading }: KPIMetricsProps) => {
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
       {metrics.map((metric) => (
         <Card key={metric.label}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 px-4">
+            <CardTitle className="text-xs font-medium text-muted-foreground tracking-tight">
               {metric.label}
             </CardTitle>
-            <metric.icon className={`h-4 w-4 ${metric.color}`} />
+            <div className="h-7 w-7 rounded-md bg-white/[0.04] backdrop-blur-sm flex items-center justify-center">
+              <metric.icon className={`h-3.5 w-3.5 ${metric.color}`} />
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4">
             {isLoading ? (
-              <Skeleton className="h-8 w-24" />
+              <Skeleton className="h-9 w-24" />
             ) : (
-              <div className="text-2xl font-bold">{metric.value}</div>
+              <div className="text-3xl font-bold font-data" style={{ textShadow: '0 0 20px oklch(0.78 0.15 200 / 0.15)' }}>{metric.value}</div>
             )}
           </CardContent>
         </Card>

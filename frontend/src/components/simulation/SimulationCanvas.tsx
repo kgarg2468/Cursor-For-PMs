@@ -102,7 +102,7 @@ export const SimulationCanvas = () => {
   if (!selectedTemplate) return null;
 
   return (
-    <div className="h-full w-full sim-canvas">
+    <div className="h-full w-full sim-canvas dot-grid">
       <ReactFlow
         nodes={visibleNodes}
         edges={visibleEdges}

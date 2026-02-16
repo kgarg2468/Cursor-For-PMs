@@ -63,7 +63,7 @@ export const IntegrationsPage = () => {
   ];
 
   return (
-    <div className="p-6 max-w-2xl space-y-6">
+    <div className="p-4 max-w-2xl space-y-4">
       <div>
         <h1 className="text-xl font-semibold">Integrations</h1>
         <p className="text-sm text-muted-foreground mt-1">

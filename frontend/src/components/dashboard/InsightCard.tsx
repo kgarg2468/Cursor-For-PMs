@@ -169,12 +169,12 @@ export const InsightCard = ({ insight }: InsightCardProps) => {
   };
 
   return (
-    <Card className={`${config.border} !py-0 !gap-0`}>
+    <Card className={`${config.border} !py-0 !gap-0 bg-card/60 backdrop-blur-xl border-white/[0.06]`}>
       {/* Collapsed content — always visible */}
       <div className="px-4 py-3">
         {/* Row 1: Type badge + title */}
         <div className="flex items-center gap-2">
-          <Badge className={`${config.color} shrink-0 text-xs px-1.5 py-0 gap-1`}>
+          <Badge className={`${config.color} shrink-0 text-[10px] font-mono uppercase tracking-wider px-1.5 py-0 gap-1`}>
             <TypeIcon className="h-2.5 w-2.5" />
             {config.label}
           </Badge>
@@ -204,22 +204,22 @@ export const InsightCard = ({ insight }: InsightCardProps) => {
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center gap-1.5 flex-wrap">
             {revenueLabel && (
-              <Badge variant="outline" className="text-xs px-1.5 py-0">
+              <Badge variant="outline" className="text-[10px] font-data px-1.5 py-0">
                 {revenueLabel} MRR
               </Badge>
             )}
             {insight.impact_customers != null && (
-              <Badge variant="outline" className="text-xs px-1.5 py-0">
+              <Badge variant="outline" className="text-[10px] font-data px-1.5 py-0">
                 {insight.impact_customers} accts
               </Badge>
             )}
             {insight.confidence != null && (
-              <Badge variant="outline" className="text-xs px-1.5 py-0">
+              <Badge variant="outline" className="text-[10px] font-data px-1.5 py-0">
                 {Math.round(insight.confidence * 100)}%
               </Badge>
             )}
             {insight.impact_score != null && (
-              <Badge variant="outline" className="text-xs px-1.5 py-0 text-primary border-primary/30">
+              <Badge variant="outline" className="text-[10px] font-data px-1.5 py-0 text-primary border-primary/30">
                 {Math.round(insight.impact_score)} impact
               </Badge>
             )}

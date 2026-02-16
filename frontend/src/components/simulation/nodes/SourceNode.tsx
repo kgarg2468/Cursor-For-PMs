@@ -9,7 +9,7 @@ export const SourceNode = ({ id, data }: NodeProps) => {
 
   return (
     <div
-      className="sim-node-enter bg-card border border-border rounded-lg shadow-sm w-[200px] cursor-pointer hover:border-emerald-500/50 transition-colors border-l-4 border-l-emerald-500"
+      className="sim-node-enter bg-card/60 backdrop-blur-xl border border-white/[0.06] rounded-lg shadow-sm w-[200px] cursor-pointer hover:border-emerald-500/50 transition-colors border-l-4 border-l-emerald-500 shadow-[-2px_0_8px_rgba(16,185,129,0.2)]"
       onClick={() => setInspectedNodeId(id)}
     >
       <div className="px-3 py-2.5">
@@ -21,7 +21,7 @@ export const SourceNode = ({ id, data }: NodeProps) => {
             </div>
           </div>
           {paramCount > 0 && (
-            <span className="shrink-0 text-[10px] bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded-full">
+            <span className="shrink-0 text-[10px] font-mono bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded-full">
               {paramCount}
             </span>
           )}

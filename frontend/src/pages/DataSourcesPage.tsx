@@ -99,7 +99,7 @@ export const DataSourcesPage = () => {
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-4">
       <div>
         <h1 className="text-xl font-semibold">Data Sources</h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -111,8 +111,8 @@ export const DataSourcesPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card
           className={`lg:col-span-2 border-dashed border-2 transition-colors cursor-pointer ${isDragging
-              ? "border-primary bg-primary/5"
-              : "border-border hover:border-primary/50"
+              ? "border-primary bg-primary/5 shadow-[0_0_20px_oklch(0.78_0.15_200/0.15)]"
+              : "border-white/[0.1] hover:border-primary/50"
             }`}
           onDragOver={(e) => {
             e.preventDefault();
@@ -203,10 +203,10 @@ export const DataSourcesPage = () => {
                     <TableCell className="font-medium text-sm">
                       {ds.name}
                     </TableCell>
-                    <TableCell className="text-sm">
+                    <TableCell className="text-sm font-data">
                       {ds.row_count?.toLocaleString()}
                     </TableCell>
-                    <TableCell className="text-sm">
+                    <TableCell className="text-sm font-data">
                       {ds.columns?.length}
                     </TableCell>
                     <TableCell>

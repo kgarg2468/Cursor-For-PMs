@@ -18,7 +18,7 @@ export const AppShell = () => {
         <Header />
         <div className="flex flex-1 overflow-hidden relative">
           <ThinkingPanel />
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-auto dot-grid">
             <Outlet />
           </main>
           <SidePanel />

@@ -137,7 +137,7 @@ export const SimulationsPage = () => {
 
           {/* Results Tab */}
           <TabsContent value="results" className="flex-1 m-0 overflow-y-auto">
-            <div className="p-6 space-y-6 max-w-5xl mx-auto">
+            <div className="p-4 space-y-4 max-w-5xl mx-auto">
               {/* Running state */}
               <CollapsibleReasoningFeed flowType="simulation" />
 
@@ -163,7 +163,7 @@ export const SimulationsPage = () => {
 
               {/* Summary */}
               {summary && (
-                <Card className="border-primary/20 bg-primary/5">
+                <Card className="border-primary/20 bg-primary/5 glow-hover">
                   <CardContent className="pt-4">
                     <div className="flex items-start gap-3">
                       <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">

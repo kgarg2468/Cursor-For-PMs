@@ -123,6 +123,7 @@ export const CommandBar = () => {
       <div onKeyDown={handleKeyDown}>
         <CommandInput
           ref={inputRef}
+          className="font-mono"
           placeholder={
             phase === "classifying"
               ? "Understanding your request..."

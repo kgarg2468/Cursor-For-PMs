@@ -204,7 +204,7 @@ const MessageBubble = ({
 
   return (
     <div className="flex gap-2.5 group">
-      <div className="shrink-0 w-6 h-6 rounded-full bg-primary/15 border border-primary/25 flex items-center justify-center mt-0.5">
+      <div className="shrink-0 w-6 h-6 rounded-full bg-primary/15 border border-primary/25 flex items-center justify-center mt-0.5 shadow-[0_0_8px_oklch(0.78_0.15_200/0.2)]">
         <Sparkles className="h-3 w-3 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
@@ -346,7 +346,7 @@ const ChatInput = ({
           ref={textareaRef}
           rows={1}
           placeholder="Ask about your data..."
-          className="flex-1 bg-secondary rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground resize-none min-h-[36px]"
+          className="flex-1 bg-white/[0.04] backdrop-blur-sm border border-white/[0.08] rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50 placeholder:text-muted-foreground resize-none min-h-[36px]"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -410,7 +410,7 @@ const PinnedContext = ({
           <button
             key={cardId}
             onClick={() => onUnpin(cardId)}
-            className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-secondary border border-border hover:border-destructive/50 hover:bg-destructive/10 transition-colors"
+            className="inline-flex items-center gap-1 text-xs font-mono px-2 py-1 rounded-md bg-secondary border border-border hover:border-destructive/50 hover:bg-destructive/10 transition-colors"
           >
             <Pin className="h-3 w-3 text-primary" />
             <span className="truncate max-w-[120px]">{label}</span>
@@ -475,14 +475,14 @@ export const SidePanel = () => {
   return (
     <div
       className={cn(
-        "border-l border-border bg-card flex flex-col h-full transition-all duration-200",
+        "border-l border-white/[0.06] glass flex flex-col h-full transition-all duration-200",
         sidePanelExpanded ? "absolute inset-0 z-50" : "w-[400px] shrink-0"
       )}
     >
       {/* Header */}
-      <div className="h-12 border-b border-border flex items-center px-3 gap-2 shrink-0">
+      <div className="h-12 border-b border-white/[0.06] flex items-center px-3 gap-2 shrink-0">
         <Sparkles className="h-4 w-4 text-primary" />
-        <span className="text-sm font-medium flex-1">AI Chat</span>
+        <span className="text-xs font-mono font-medium tracking-wider uppercase flex-1">AI Chat</span>
         <Button
           variant="ghost"
           size="icon"

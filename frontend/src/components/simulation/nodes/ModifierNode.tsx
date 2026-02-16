@@ -9,7 +9,7 @@ export const ModifierNode = ({ id, data }: NodeProps) => {
 
   return (
     <div
-      className="sim-node-enter bg-card border border-border rounded-lg shadow-sm w-[200px] cursor-pointer hover:border-amber-500/50 transition-colors border-l-4 border-l-amber-500"
+      className="sim-node-enter bg-card/60 backdrop-blur-xl border border-white/[0.06] rounded-lg shadow-sm w-[200px] cursor-pointer hover:border-amber-500/50 transition-colors border-l-4 border-l-amber-500 shadow-[-2px_0_8px_rgba(245,158,11,0.2)]"
       onClick={() => setInspectedNodeId(id)}
     >
       <Handle
@@ -26,7 +26,7 @@ export const ModifierNode = ({ id, data }: NodeProps) => {
             </div>
           </div>
           {paramCount > 0 && (
-            <span className="shrink-0 text-[10px] bg-amber-500/15 text-amber-400 px-1.5 py-0.5 rounded-full">
+            <span className="shrink-0 text-[10px] font-mono bg-amber-500/15 text-amber-400 px-1.5 py-0.5 rounded-full">
               {paramCount}
             </span>
           )}

@@ -16,8 +16,8 @@ export const ThinkingPanelButton = () => {
         "fixed bottom-6 left-6 z-40 flex items-center gap-2 px-3 py-2 rounded-full border shadow-md transition-all duration-200",
         "text-sm font-medium",
         thinkingPanelOpen
-          ? "bg-primary text-primary-foreground border-primary shadow-primary/20"
-          : "bg-card text-foreground border-border hover:border-primary/40 hover:shadow-lg"
+          ? "bg-primary text-primary-foreground border-primary shadow-primary/20 animate-[glow-pulse_3s_ease-in-out_infinite]"
+          : "bg-card/60 backdrop-blur-xl text-foreground border-white/[0.06] hover:border-primary/40 hover:shadow-lg"
       )}
     >
       <div className="relative">

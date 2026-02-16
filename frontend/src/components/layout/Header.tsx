@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/appStore";
 import { useSimulationStore } from "@/stores/simulationStore";
+import prismLogo from "@/assets/prism-logo.png";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -39,13 +40,15 @@ export const Header = () => {
       : "/simulations";
 
   return (
-    <header className="h-14 border-b border-border bg-card flex items-center px-4 gap-2 shrink-0">
+    <header className="h-12 glass glow-line-bottom flex items-center px-4 gap-2 shrink-0 relative">
       <div className="flex items-center gap-2 mr-6">
-        <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-sm">P</span>
-        </div>
+        <img
+          src={prismLogo}
+          alt="Prism"
+          className="w-7 h-7 rounded-lg object-cover"
+        />
         <span className="font-semibold text-sm tracking-tight">
-          Insight Autopilot
+          Prism
         </span>
       </div>
 
@@ -79,7 +82,7 @@ export const Header = () => {
       >
         <Search className="h-3.5 w-3.5" />
         <span>Ask AI...</span>
-        <kbd className="ml-2 pointer-events-none inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+        <kbd className="ml-2 pointer-events-none inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground tracking-tight">
           <span className="text-xs">⌘</span>K
         </kbd>
       </Button>

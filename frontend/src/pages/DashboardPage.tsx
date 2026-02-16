@@ -86,7 +86,7 @@ export const DashboardPage = () => {
             <Sparkles className="h-8 w-8 text-primary" />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Product Insight Autopilot
+            Prism
           </h1>
           <p className="text-muted-foreground max-w-md">
             Upload your product data or try with our sample dataset. AI will
@@ -110,7 +110,7 @@ export const DashboardPage = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-4">
       {/* Alert Banner */}
       {!isGenerating && insights.length > 0 && (
         <AlertBanner insights={insights} />
@@ -168,7 +168,7 @@ export const DashboardPage = () => {
                   size="sm"
                   onClick={regenerate}
                   disabled={isGenerating}
-                  className="gap-1.5"
+                  className="gap-1.5 glow-hover"
                 >
                   <RefreshCw className={`h-3 w-3 ${isGenerating ? "animate-spin" : ""}`} />
                   Regenerate

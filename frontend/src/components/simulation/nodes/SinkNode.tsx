@@ -8,7 +8,7 @@ export const SinkNode = ({ id, data }: NodeProps) => {
 
   return (
     <div
-      className="sim-node-enter bg-card border border-border rounded-lg shadow-sm w-[200px] cursor-pointer hover:border-blue-500/50 transition-colors border-l-4 border-l-blue-500"
+      className="sim-node-enter bg-card/60 backdrop-blur-xl border border-white/[0.06] rounded-lg shadow-sm w-[200px] cursor-pointer hover:border-blue-500/50 transition-colors border-l-4 border-l-blue-500 shadow-[-2px_0_8px_rgba(59,130,246,0.2)]"
       onClick={() => setInspectedNodeId(id)}
     >
       <Handle
