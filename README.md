@@ -1,4 +1,4 @@
-# Prism 
+# Prism
 
 **The "Cursor for Product Managers"**
 
@@ -6,29 +6,54 @@ Prism is the first AI-native system for product discovery. While coding agents l
 
 Built for the **Anthropic Claude Code Hackathon** (Feb 2026).
 
-## 🚀 The Problem
+## The Problem
 
-Every successful product requires understanding markets, synthesizing feedback, and prioritizing features. Today, this process is manual, disconnected, and buried in spreadsheets. 
+Every successful product requires understanding markets, synthesizing feedback, and prioritizing features. Today, this process is manual, disconnected, and buried in spreadsheets.
 
 Prism changes that. It ingests your customer interviews, usage data, and support tickets to answer "What should we build next?"—not with vague suggestions, but with rigorous, data-backed simulations.
 
-## ✨ Key Features
+## Key Features
 
-- **🔍 Multi-Source Ingestion**: Upload data of customer usage, feedback, and CRM data.
-- **🧠 Agentic Insights**: Opus 4.6 proactively identifies churn risks, growth opportunities, and correlations without you asking.
-- **📈 Market Simulations**: Run Monte Carlo simulations on strategic decisions (e.g., "Raise Enterprise Pricing") with confidence intervals.
-- **🔮 Agentic Scenarios**: The AI generates, parameterizes, and compares multiple futures to recommend the best path.
-- **📝 Artifact Generation**: One-click generation of PRDs, Linear tickets, and spec docs based on the chosen strategy.
-- **Transparency**: Watch the "Reasoning Panel" to see the AI's step-by-step logic, building trust in the output.
+### Automated AI Insights with Claude Opus 4.6
+Opus 4.6 acts as your always-on analyst. By ingesting your data, it automatically identifies trends, alerts, and hidden opportunities, presenting them as **AI Insight Cards**.
+- **Deep Context**: Expand each card to view the root cause, supporting evidence, and suggested next steps.
+- **Interactive Exploration**: Includes suggested questions to ask Opus 4.6 for further analysis.
 
-## 🛠️ Tech Stack
+### Contextual Pinning
+Never lose the thread of your analysis. Use the **Pin Feature** to lock the data and reasoning of any insight to the right-side agent.
+- **Focused Conversations**: Specify exactly what context Opus 4.6 should keep in mind.
+- **Reasoning Retention**: Ensure the AI understands the full history of an insight while you brainstorm solutions.
+
+### Deep Dive 3-Step Process
+Move from insight to action with a structured workflow:
+1.  **The Problem**: Clearly define the issue based on data.
+2.  **Opus 4.6 Reasoning**: Review the AI's logical deduction and evidence.
+3.  **Next Steps**: Generate concrete actions that can be added directly to your plan.
+
+### Strategic Action Plan
+Your generated next steps don't just disappear. They are organized into a cohesive **Action Plan** viewable at any time in the dashboard.
+- **Prioritization**: Tasks are automatically arranged from **Immediate** to **Low Priority**.
+- **Management**: Track progress and ensure the most critical items are addressed first.
+
+### Agentic Market Simulations
+Inspired by Wall Street trading algorithms but re-engineered for product management. I've introduced a first-of-its-kind **Market Simulation** engine.
+- **Node-Based Interface**: Interact with simulations using a visual, node-based system (similar to n8n).
+- **Customizable Rules**: Change parameters and add custom rules. Opus 4.6 uses NLP to understand and apply your specific restrictions.
+- **Impact Visualization**: See the ripple effects of your decisions across the entire company before implementation.
+
+### Integrations & Artifact Generation
+Get ahead of your work by integrating with popular MCPs like **Slack**, **Notion**, **Jira**, and **Gmail**, or add your own custom integrations.
+- **Auto-Drafting**: Generate high-quality artifacts (PRDs, emails, tickets) based on your insights and simulations.
+- **Direct Execution**: Based on simulation outcomes, you can instantly review and send Slack messages, emails, or create Jira tickets directly from the platform.
+
+## Tech Stack
 
 - **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Recharts/Nivo
 - **Backend**: FastAPI, Python 3.11+, SQLite (WAL mode)
 - **AI**: Anthropic Opus 4.6 (Reasoning/Analysis), Sonnet 3.5 (Fast Tasks)
 - **Infrastructure**: Docker Compose (optional)
 
-## ⚡ Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -88,12 +113,12 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173) to see the app.
 
-## 📚 Documentation
+## Documentation
 
 - [Demo Guide](demo-guide.md) - Step-by-step walkthrough of the hackathon demo flow.
 - [Architecture](CLAUDE.md) - Detailed technical breakdown.
 
-## 🏆 Hackathon Details
+## Hackathon Details
 
 This project was built during the Claude Code Hackathon to explore the capabilities of **Opus 4.6**. I leveraged its extended thinking windows for complex market simulation and agentic planning.
 
