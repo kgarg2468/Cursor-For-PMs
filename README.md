@@ -15,6 +15,7 @@ Prism changes that. It ingests your customer interviews, usage data, and support
 ## Key Features
 
 ### Automated AI Insights with Claude Opus 4.6
+![Automated AI Insights](assets/screenshots/dashboard_insights.png)
 Opus 4.6 acts as your always-on analyst. By ingesting your data, it automatically identifies trends, alerts, and hidden opportunities, presenting them as **AI Insight Cards**.
 - **Deep Context**: Expand each card to view the root cause, supporting evidence, and suggested next steps.
 - **Interactive Exploration**: Includes suggested questions to ask Opus 4.6 for further analysis.
@@ -36,12 +37,14 @@ Your generated next steps don't just disappear. They are organized into a cohesi
 - **Management**: Track progress and ensure the most critical items are addressed first.
 
 ### Agentic Market Simulations
+![Agentic Market Simulations](assets/screenshots/market_simulation.png)
 Inspired by Wall Street trading algorithms but re-engineered for product management. I've introduced a first-of-its-kind **Market Simulation** engine.
 - **Node-Based Interface**: Interact with simulations using a visual, node-based system (similar to n8n).
 - **Customizable Rules**: Change parameters and add custom rules. Opus 4.6 uses NLP to understand and apply your specific restrictions.
 - **Impact Visualization**: See the ripple effects of your decisions across the entire company before implementation.
 
 ### Integrations & Artifact Generation
+![Integrations & Artifact Generation](assets/screenshots/integrations.png)
 Get ahead of your work by integrating with popular MCPs like **Slack**, **Notion**, **Jira**, and **Gmail**, or add your own custom integrations.
 - **Auto-Drafting**: Generate high-quality artifacts (PRDs, emails, tickets) based on your insights and simulations.
 - **Direct Execution**: Based on simulation outcomes, you can instantly review and send Slack messages, emails, or create Jira tickets directly from the platform.
@@ -51,7 +54,7 @@ Get ahead of your work by integrating with popular MCPs like **Slack**, **Notion
 - **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Recharts/Nivo
 - **Backend**: FastAPI, Python 3.11+, SQLite (WAL mode)
 - **AI**: Anthropic Opus 4.6 (Reasoning/Analysis), Sonnet 3.5 (Fast Tasks)
-- **Infrastructure**: Docker Compose (optional)
+- **Infrastructure**: Docker Compose 
 
 ## Getting Started
 
@@ -115,7 +118,6 @@ Open [http://localhost:5173](http://localhost:5173) to see the app.
 
 ## Documentation
 
-- [Demo Guide](demo-guide.md) - Step-by-step walkthrough of the hackathon demo flow.
 - [Architecture](CLAUDE.md) - Detailed technical breakdown.
 
 ## Hackathon Details
