@@ -335,6 +335,7 @@ Find the most impactful insights — anomalies, correlations, segment behaviors,
         return
 
     # Step 6: Save insights to DB and yield them
+    insight_number = 0
     db = await get_db()
     try:
         for item in insights_data:
@@ -367,6 +368,8 @@ Find the most impactful insights — anomalies, correlations, segment behaviors,
                 ),
             )
 
+            insight_number += 1
+
             yield {
                 "type": "insight",
                 "data": {
@@ -388,6 +391,11 @@ Find the most impactful insights — anomalies, correlations, segment behaviors,
                     "dismissed": False,
                     "created_at": None,
                 },
+            }
+
+            yield {
+                "type": "insight_count",
+                "data": {"count": insight_number, "total": len(insights_data)},
             }
 
         await db.commit()

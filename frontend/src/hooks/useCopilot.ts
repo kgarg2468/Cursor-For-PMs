@@ -5,6 +5,8 @@ import { useCopilotStore } from "@/stores/copilotStore";
 import { useInsightStore } from "@/stores/insightStore";
 import { useChatStore } from "@/stores/chatStore";
 import { useSimulationStore, type SimulationState } from "@/stores/simulationStore";
+import { useActivityFeedStore } from "@/stores/activityFeedStore";
+import { mapCopilotEvent } from "@/lib/activityMappers";
 import { copilotApi, simulationsApi } from "@/lib/api";
 import type { InsightResponse } from "@/lib/api";
 import { connectPostSSE, type SSEConnection } from "@/lib/sse";
@@ -96,9 +98,14 @@ export function useCopilot() {
       setPhase("generating");
       setProgressMessage("Analyzing your question...");
 
+      // Start copilot activity feed
+      useActivityFeedStore.getState().startFeed("copilot");
+
       connectionRef.current = connectPostSSE(
         copilotApi.generateInsightUrl(),
         (event) => {
+          mapCopilotEvent(event as { type: string; data: Record<string, unknown> }, useActivityFeedStore.getState(), "generating");
+
           if (event.type === "progress") {
             setProgressMessage((event.data.step as string) || "Processing...");
           } else if (event.type === "thinking") {
@@ -143,10 +150,15 @@ export function useCopilot() {
       setPhase("generating");
       setProgressMessage("Generating insight for simulation...");
 
+      // Start copilot activity feed
+      useActivityFeedStore.getState().startFeed("copilot");
+
       // Step 1: generate insight first
       connectionRef.current = connectPostSSE(
         copilotApi.generateInsightUrl(),
         (event) => {
+          mapCopilotEvent(event as { type: string; data: Record<string, unknown> }, useActivityFeedStore.getState(), "generating");
+
           if (event.type === "progress") {
             setProgressMessage((event.data.step as string) || "Processing...");
           } else if (event.type === "thinking") {
@@ -171,6 +183,8 @@ export function useCopilot() {
             connectionRef.current = connectPostSSE(
               simulationsApi.triggerAgenticUrl(),
               (simEvent) => {
+                mapCopilotEvent(simEvent as { type: string; data: Record<string, unknown> }, useActivityFeedStore.getState(), "simulating");
+
                 if (simEvent.type === "progress") {
                   const step = (simEvent.data.step as string) || "";
                   setProgressMessage(step);
@@ -360,9 +374,14 @@ export function useCopilot() {
     (insightId: string) => {
       simSetIsRunning(true);
 
+      // Start copilot activity feed for simulation
+      useActivityFeedStore.getState().startFeed("copilot");
+
       connectionRef.current = connectPostSSE(
         simulationsApi.triggerAgenticUrl(),
         (simEvent) => {
+          mapCopilotEvent(simEvent as { type: string; data: Record<string, unknown> }, useActivityFeedStore.getState(), "simulating");
+
           if (simEvent.type === "progress") {
             const step = (simEvent.data.step as string) || "";
             setProgressMessage(step);

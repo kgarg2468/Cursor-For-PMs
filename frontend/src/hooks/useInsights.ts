@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useAppStore } from "@/stores/appStore";
 import { useInsightStore } from "@/stores/insightStore";
+import { useActivityFeedStore } from "@/stores/activityFeedStore";
+import { mapInsightGenerationEvent } from "@/lib/activityMappers";
 import type { KPIs } from "@/stores/insightStore";
 import { insightsApi } from "@/lib/api";
 import type { InsightResponse } from "@/lib/api";
@@ -40,10 +42,16 @@ export function useInsights() {
       setInsightsDatasetId(datasetId);
       setIsGenerating(true);
 
+      // Start activity feed
+      useActivityFeedStore.getState().startFeed("insight-generation", datasetId);
+
       const url = insightsApi.generateUrl(datasetId);
       connectionRef.current = connectPostSSE(
         url,
         (event) => {
+          // Activity feed mapper
+          mapInsightGenerationEvent(event as { type: string; data: Record<string, unknown> }, useActivityFeedStore.getState());
+
           switch (event.type) {
             case "progress":
               addGenerationProgress(event.data.step as string);

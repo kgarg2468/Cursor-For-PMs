@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useChatStore } from "@/stores/chatStore";
+import { useActivityFeedStore } from "@/stores/activityFeedStore";
+import { mapChatEvent } from "@/lib/activityMappers";
 import { chatApi } from "@/lib/api";
 import { connectPostSSE, type SSEConnection } from "@/lib/sse";
 
@@ -73,12 +75,18 @@ export function useChat() {
       textBufferRef.current = "";
       shouldAutoScrollRef.current = true;
 
+      // Start chat activity feed
+      useActivityFeedStore.getState().startFeed("chat", conversationId);
+
       const url = chatApi.streamUrl(conversationId);
       const body = chatApi.streamBody(trimmed, pinnedCards.length > 0 ? pinnedCards : undefined);
 
       connectionRef.current = connectPostSSE(
         url,
         (event) => {
+          // Activity feed mapper
+          mapChatEvent(event as { type: string; data: Record<string, unknown> }, useActivityFeedStore.getState());
+
           switch (event.type) {
             case "thinking":
               if (event.data.content) {

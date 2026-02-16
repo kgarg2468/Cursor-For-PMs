@@ -18,8 +18,8 @@ import { useInsights } from "@/hooks/useInsights";
 import { KPIMetrics } from "@/components/dashboard/KPIMetrics";
 import { InsightCard } from "@/components/dashboard/InsightCard";
 import { AlertBanner } from "@/components/dashboard/AlertBanner";
-import { GenerationProgress } from "@/components/dashboard/GenerationProgress";
 import { ActionPlanView } from "@/components/dashboard/ActionPlanView";
+import { CollapsibleReasoningFeed } from "@/components/activity/CollapsibleReasoningFeed";
 import type { InsightType } from "@/lib/api";
 
 const TYPE_LABELS: Record<InsightType, string> = {
@@ -46,8 +46,6 @@ export const DashboardPage = () => {
     insights,
     kpis,
     isGenerating,
-    generationProgress,
-    thinkingSteps,
     regenerate,
   } = useInsights();
 
@@ -121,13 +119,8 @@ export const DashboardPage = () => {
       {/* KPI Row */}
       <KPIMetrics kpis={kpis} isLoading={isGenerating && !kpis} />
 
-      {/* Generation Progress */}
-      {isGenerating && (
-        <GenerationProgress
-          progress={generationProgress}
-          thinkingSteps={thinkingSteps}
-        />
-      )}
+      {/* Generation Progress — Activity Feed */}
+      <CollapsibleReasoningFeed flowType="insight-generation" />
 
       {/* Dashboard Tabs: Insights + Action Plan */}
       {(insights.length > 0 || !isGenerating) && (

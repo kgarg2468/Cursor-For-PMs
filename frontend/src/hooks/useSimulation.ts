@@ -1,6 +1,8 @@
 import { useCallback, useRef } from "react";
 import { useAppStore } from "@/stores/appStore";
 import { useSimulationStore } from "@/stores/simulationStore";
+import { useActivityFeedStore } from "@/stores/activityFeedStore";
+import { mapSimulationEvent } from "@/lib/activityMappers";
 import { simulationsApi } from "@/lib/api";
 import { connectPostSSE, type SSEConnection } from "@/lib/sse";
 import type {
@@ -55,6 +57,9 @@ export function useSimulation() {
     setIsRunning(true);
     setActiveTab("results");
 
+    // Start activity feed for regular simulation
+    useActivityFeedStore.getState().startFeed("simulation", selectedTemplate.id);
+
     const scope = getNodeContextScope();
     const node_context: Record<string, { user_message: string; claude_reply?: string }> = {};
     for (const node of selectedTemplate.nodes) {
@@ -92,6 +97,9 @@ export function useSimulation() {
     connectionRef.current = connectPostSSE(
       url,
       (event) => {
+        // Activity feed mapper
+        mapSimulationEvent(event as { type: string; data: Record<string, unknown> }, useActivityFeedStore.getState());
+
         switch (event.type) {
           case "progress":
             addProgress(event.data.step as string);

@@ -5,8 +5,10 @@ import { Loader2, Zap, CheckCircle2, FlaskConical } from "lucide-react";
 import { useActionGeneration } from "@/hooks/useActionGeneration";
 import { useActionPlanStore } from "@/stores/actionPlanStore";
 import { useSimulationStore } from "@/stores/simulationStore";
+import { useActivityFeedStore } from "@/stores/activityFeedStore";
 import { insightsApi } from "@/lib/api";
 import { ActionCard } from "./ActionCard";
+import { AgenticActivityFeed } from "@/components/activity/AgenticActivityFeed";
 
 interface WizardStepActionsProps {
   insightId: string;
@@ -17,10 +19,12 @@ export const WizardStepActions = ({ insightId }: WizardStepActionsProps) => {
   const {
     wizardActions,
     isGeneratingActions,
-    actionThinkingSteps,
     generate,
     loadCached,
   } = useActionGeneration();
+
+  const feedSteps = useActivityFeedStore((s) => s.steps);
+  const feedFlowId = useActivityFeedStore((s) => s.flowId);
 
   const togglePlanAction = useActionPlanStore((s) => s.togglePlanAction);
   const addActionsToPlan = useActionPlanStore((s) => s.addActionsToPlan);
@@ -90,7 +94,7 @@ export const WizardStepActions = ({ insightId }: WizardStepActionsProps) => {
     }
   };
 
-  const thinkingText = actionThinkingSteps.join("");
+  const showFeed = feedSteps.length > 0 && feedFlowId?.startsWith("action-gen-");
   const addedCount = wizardActions.filter((a) => a.added_to_plan).length;
   const notAddedCount = wizardActions.length - addedCount;
 
@@ -125,17 +129,10 @@ export const WizardStepActions = ({ insightId }: WizardStepActionsProps) => {
           </Button>
         </div>
 
-        {/* Thinking animation */}
-        {isGeneratingActions && thinkingText && (
-          <div className="text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2 border border-border/50">
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-              </span>
-              <span className="font-medium">Thinking...</span>
-            </div>
-            <p className="truncate">{thinkingText.slice(-120)}</p>
+        {/* Activity Feed */}
+        {showFeed && (
+          <div className="max-h-[40vh] overflow-y-auto">
+            <AgenticActivityFeed variant="standard" flowType="copilot" />
           </div>
         )}
 

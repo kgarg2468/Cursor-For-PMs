@@ -110,6 +110,7 @@ async def run_simulation(
             pass  # Run without dataset context
 
     # Step 3: Build prompt
+    yield {"type": "step_start", "data": {"step": "claude_analysis", "label": "Analyzing causal chain with Claude..."}}
     yield {"type": "progress", "data": {"step": "Running simulation with AI..."}}
 
     user_prompt = f"""Simulate this scenario. Return the JSON with all 6 keys.

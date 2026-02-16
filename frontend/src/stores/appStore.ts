@@ -9,6 +9,7 @@ interface AppState {
   sidePanelOpen: boolean;
   sidePanelExpanded: boolean;
   commandBarOpen: boolean;
+  thinkingPanelOpen: boolean;
 
   setTheme: (theme: "dark" | "light") => void;
   toggleTheme: () => void;
@@ -21,6 +22,8 @@ interface AppState {
   toggleSidePanelExpanded: () => void;
   setSidePanelExpanded: (expanded: boolean) => void;
   setCommandBarOpen: (open: boolean) => void;
+  setThinkingPanelOpen: (open: boolean) => void;
+  toggleThinkingPanel: () => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -32,6 +35,7 @@ export const useAppStore = create<AppState>()(
       sidePanelOpen: false,
       sidePanelExpanded: false,
       commandBarOpen: false,
+      thinkingPanelOpen: false,
 
       setTheme: (theme) => {
         document.documentElement.classList.toggle("light", theme === "light");
@@ -67,6 +71,9 @@ export const useAppStore = create<AppState>()(
       setSidePanelExpanded: (expanded) =>
         set({ sidePanelExpanded: expanded }),
       setCommandBarOpen: (open) => set({ commandBarOpen: open }),
+      setThinkingPanelOpen: (open) => set({ thinkingPanelOpen: open }),
+      toggleThinkingPanel: () =>
+        set((state) => ({ thinkingPanelOpen: !state.thinkingPanelOpen })),
     }),
     {
       name: "product-insight-autopilot-app",

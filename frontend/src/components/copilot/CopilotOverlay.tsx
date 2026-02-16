@@ -1,12 +1,37 @@
 import { useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import { useCopilot } from "@/hooks/useCopilot";
+import { useActivityFeedStore } from "@/stores/activityFeedStore";
+import { AgenticActivityFeed } from "@/components/activity/AgenticActivityFeed";
 import { CopilotResultCard } from "./CopilotResultCard";
+
+const CopilotActivityContent = ({ cancel }: { cancel: () => void }) => {
+  const feedSteps = useActivityFeedStore((s) => s.steps);
+
+  if (feedSteps.length > 0) {
+    return (
+      <AgenticActivityFeed variant="overlay" flowType="copilot" onCancel={cancel} />
+    );
+  }
+
+  // Fallback while feed hasn't received events yet
+  return (
+    <div className="flex flex-col items-center gap-4 py-16">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <p className="text-sm text-muted-foreground animate-pulse">Processing...</p>
+      <button
+        className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+        onClick={cancel}
+      >
+        Press Esc to cancel
+      </button>
+    </div>
+  );
+};
 
 export const CopilotOverlay = () => {
   const {
     phase,
-    progressMessage,
     generatedInsight,
     errorMessage,
     cancel,
@@ -54,20 +79,9 @@ export const CopilotOverlay = () => {
         className="relative z-10 w-full max-w-xl mx-4"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Loading state */}
+        {/* Loading state — Activity Feed */}
         {(phase === "generating" || phase === "simulating") && (
-          <div className="flex flex-col items-center gap-4 py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground animate-pulse">
-              {progressMessage || "Processing..."}
-            </p>
-            <button
-              className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-              onClick={cancel}
-            >
-              Press Esc to cancel
-            </button>
-          </div>
+          <CopilotActivityContent cancel={cancel} />
         )}
 
         {/* Result state */}

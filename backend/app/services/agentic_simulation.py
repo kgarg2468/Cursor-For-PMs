@@ -72,12 +72,21 @@ Return ONLY the JSON array, no markdown, no code fences."""
 
 
 async def generate_scenarios(insight_id: str) -> List[Dict[str, Any]]:
-    """Generate 3 strategic scenarios based on an insight."""
+    """Generate 3 strategic scenarios based on an insight (non-streaming)."""
+    scenarios: List[Dict[str, Any]] = []
+    async for event in generate_scenarios_stream(insight_id):
+        if event["type"] == "scenarios_result":
+            scenarios = event["data"]["scenarios"]
+    return scenarios
+
+
+async def generate_scenarios_stream(insight_id: str) -> AsyncGenerator[Dict[str, Any], None]:
+    """Generate 3 strategic scenarios, yielding thinking events as they arrive."""
     db = await get_db()
     try:
         cursor = await db.execute(
-            """SELECT id, dataset_id, type, priority, title, description, 
-                      impact_revenue, impact_customers, confidence, 
+            """SELECT id, dataset_id, type, priority, title, description,
+                      impact_revenue, impact_customers, confidence,
                       prediction, prediction_detail, ai_reasoning
                FROM insights WHERE id = ?""",
             (insight_id,),
@@ -85,7 +94,7 @@ async def generate_scenarios(insight_id: str) -> List[Dict[str, Any]]:
         row = await cursor.fetchone()
         if not row:
             raise ValueError(f"Insight {insight_id} not found")
-        
+
         dataset_id = row[1]
         insight_data = {
             "type": row[2],
@@ -135,7 +144,7 @@ Confidence: {insight_data['confidence'] or 0}
 Generate 3 distinct scenarios that address this insight. Each scenario should propose a different strategic approach.
 """
 
-    # Call Claude
+    # Call Claude — forward thinking events
     response_text = ""
     async for event in claude_client.stream_completion(
         system_prompt=SCENARIO_GENERATION_PROMPT,
@@ -143,7 +152,9 @@ Generate 3 distinct scenarios that address this insight. Each scenario should pr
         budget_tokens=1500,
         max_tokens=8000,
     ):
-        if event["type"] == "text":
+        if event["type"] == "thinking":
+            yield {"type": "thinking", "data": {"content": event["content"]}}
+        elif event["type"] == "text":
             response_text += event["content"]
 
     # Parse response
@@ -154,24 +165,24 @@ Generate 3 distinct scenarios that address this insight. Each scenario should pr
         if cleaned.endswith("```"):
             cleaned = cleaned[:-3]
         cleaned = cleaned.strip()
-        
+
         scenarios = json.loads(cleaned)
         if not isinstance(scenarios, list) or len(scenarios) != 3:
             raise ValueError("Expected 3 scenarios")
-        
+
         # Add unique IDs if missing
         for i, scenario in enumerate(scenarios):
             if "id" not in scenario:
                 scenario["id"] = f"scenario-{i+1}"
-        
+
         # Normalize: ensure every node has data.params and node_params is aligned
         for scenario in scenarios:
             _normalize_scenario_params(scenario)
-        
-        return scenarios
-    except (json.JSONDecodeError, ValueError) as e:
+
+        yield {"type": "scenarios_result", "data": {"scenarios": scenarios}}
+    except (json.JSONDecodeError, ValueError):
         # Fallback: return default scenarios
-        return _get_fallback_scenarios(insight_data)
+        yield {"type": "scenarios_result", "data": {"scenarios": _get_fallback_scenarios(insight_data)}}
 
 
 def _normalize_scenario_params(scenario: Dict[str, Any]) -> None:
@@ -413,8 +424,9 @@ async def _run_single_simulation(
         node_params = {}
         for node_id, params in scenario.get("node_params", {}).items():
             node_params[node_id] = {k: float(v) for k, v in params.items()}
-        
-        # Run simulation
+
+        # Run simulation — collect thinking alongside chart data
+        thinking_parts: list[str] = []
         async for event in simulation_engine.run_simulation(
             template_id=f"agentic-{scenario_id}",
             template_name=scenario["name"],
@@ -425,7 +437,12 @@ async def _run_single_simulation(
         ):
             if event["type"] in ["fan_chart", "tornado_chart", "histogram", "scenario_table", "var_card", "summary"]:
                 results[event["type"]] = event["data"]
-        
+            elif event["type"] == "thinking":
+                thinking_parts.append(event.get("data", {}).get("content", ""))
+
+        if thinking_parts:
+            results["thinking_log"] = "".join(thinking_parts)
+
         return results
     except Exception as e:
         results["error"] = str(e)
@@ -454,42 +471,57 @@ async def run_agentic_simulation(insight_id: str) -> AsyncGenerator[Dict[str, An
         await db.close()
     
     yield {"type": "progress", "data": {"step": "Generating 3 strategic scenarios..."}}
-    
-    # Generate scenarios
+
+    # Generate scenarios — forward thinking events live
+    scenarios = None
     try:
-        scenarios = await generate_scenarios(insight_id)
+        async for event in generate_scenarios_stream(insight_id):
+            if event["type"] == "thinking":
+                yield event  # Forward thinking to SSE client
+            elif event["type"] == "scenarios_result":
+                scenarios = event["data"]["scenarios"]
     except Exception as e:
         yield {"type": "error", "data": {"message": f"Failed to generate scenarios: {str(e)}"}}
         return
-    
+
+    if not scenarios:
+        yield {"type": "error", "data": {"message": "Failed to generate scenarios"}}
+        return
+
     yield {"type": "scenarios_generated", "data": {"scenarios": scenarios}}
     
-    # Run simulations in parallel
-    yield {"type": "progress", "data": {"step": "Running simulations in parallel..."}}
-    
-    tasks = [
-        _run_single_simulation(scenario, dataset_id, scenario["id"])
-        for scenario in scenarios
-    ]
-    
-    simulation_results = await asyncio.gather(*tasks, return_exceptions=True)
-    
-    # Process results
+    # Run simulations — use as_completed for real-time per-scenario events
+    yield {"type": "progress", "data": {"step": "Running simulations for each scenario..."}}
+
+    # Create tasks with scenario id tracking
+    task_map = {}
+    for scenario in scenarios:
+        yield {"type": "scenario_started", "data": {"scenario_id": scenario["id"], "scenario_name": scenario["name"]}}
+        task = asyncio.create_task(_run_single_simulation(scenario, dataset_id, scenario["id"]))
+        task_map[task] = scenario["id"]
+
     completed_results = []
-    for i, result in enumerate(simulation_results):
-        if isinstance(result, Exception):
-            yield {
-                "type": "scenario_error",
-                "data": {
-                    "scenario_id": scenarios[i]["id"],
-                    "error": str(result),
-                },
-            }
-        else:
+    for coro in asyncio.as_completed(task_map.keys()):
+        try:
+            result = await coro
             completed_results.append(result)
+            # Forward accumulated thinking from this scenario's simulation
+            if result.get("thinking_log"):
+                yield {
+                    "type": "thinking",
+                    "data": {"content": result["thinking_log"]},
+                }
             yield {
                 "type": "scenario_complete",
                 "data": result,
+            }
+        except Exception as e:
+            # Find which scenario failed
+            yield {
+                "type": "scenario_error",
+                "data": {
+                    "error": str(e),
+                },
             }
     
     if not completed_results:

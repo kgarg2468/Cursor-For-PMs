@@ -12,7 +12,6 @@ import type { AgenticScenarioRaw } from "@/lib/agenticScenario";
 import type { SimulationResults } from "@/types/simulation";
 import { SimulationCanvas } from "./SimulationCanvas";
 import { NodeInspector } from "./NodeInspector";
-import { SimulationProgress } from "./SimulationProgress";
 import { FanChart } from "./results/FanChart";
 import { TornadoChart } from "./results/TornadoChart";
 import { HistogramChart } from "./results/HistogramChart";
@@ -27,6 +26,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useSimulation } from "@/hooks/useSimulation";
+import { useActivityFeedStore } from "@/stores/activityFeedStore";
+import { mapAgenticSimulationEvent } from "@/lib/activityMappers";
+import { AgenticActivityFeed } from "@/components/activity/AgenticActivityFeed";
+import { CollapsibleReasoningFeed } from "@/components/activity/CollapsibleReasoningFeed";
+import { ActivityLogButton } from "@/components/activity/ActivityLogButton";
 
 /** Split summary into bullet lines (newline or sentence); filter empty. */
 function summaryToBullets(summary: string): string[] {
@@ -105,8 +109,6 @@ export const AgenticSimulationView = () => {
     comparisonData,
     artifacts,
     isRunning,
-    progress,
-    thinkingSteps,
     fanChart,
     tornadoChart,
     histogram,
@@ -128,6 +130,11 @@ export const AgenticSimulationView = () => {
   const insightId = insightIdFromUrl || insightIdFromStore;
 
   const { runSimulation: runSim, stopSimulation: stopSim } = useSimulation();
+
+  // Activity feed hooks — must be called before any early returns
+  const steps = useActivityFeedStore((s) => s.steps);
+  const feedIsComplete = useActivityFeedStore((s) => s.isComplete);
+  const feedTransitionPhase = useActivityFeedStore((s) => s.transitionPhase);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -191,12 +198,18 @@ export const AgenticSimulationView = () => {
       setIsRunning(true);
       setLoading(false);
 
+      // Start activity feed
+      useActivityFeedStore.getState().startFeed("agentic-simulation", insightId);
+
       const url = simulationsApi.triggerAgenticUrl();
       const body = { insight_id: insightId };
 
       connectionRef.current = connectPostSSE(
         url,
         (event) => {
+          // Feed mapper — runs alongside domain handlers
+          mapAgenticSimulationEvent(event as { type: string; data: Record<string, unknown> }, useActivityFeedStore.getState());
+
           switch (event.type) {
             case "progress":
               addProgress(event.data.step as string);
@@ -324,14 +337,10 @@ export const AgenticSimulationView = () => {
   if (scenarios.length === 0) {
     return (
       <div className="min-h-full w-full bg-background flex flex-col items-center justify-center gap-4 p-6">
-        {isRunning ? (
-          <>
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">
-              {progress[progress.length - 1] || "Generating scenarios..."}
-            </p>
-          </>
-        ) : (
+        <div className="w-full max-w-lg">
+          <CollapsibleReasoningFeed flowType="agentic-simulation" />
+        </div>
+        {!isRunning && steps.length === 0 && (
           <p className="text-sm text-muted-foreground">No scenarios yet.</p>
         )}
       </div>
@@ -453,12 +462,7 @@ export const AgenticSimulationView = () => {
 
             <TabsContent value="results" className="flex-1 m-0 overflow-y-auto">
               <div className="p-6 space-y-6 max-w-5xl mx-auto">
-                {isRunning && (
-                  <SimulationProgress
-                    progress={progress}
-                    thinkingSteps={thinkingSteps}
-                  />
-                )}
+                <CollapsibleReasoningFeed flowType="simulation" />
 
                 {!isRunning && !hasResults && (
                   <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -542,6 +546,8 @@ export const AgenticSimulationView = () => {
           <ArtifactPreview artifacts={artifacts as Artifact[]} insightId={insightId} />
         </div>
       )}
+
+      {feedIsComplete && feedTransitionPhase === "results" && <ActivityLogButton />}
     </div>
   );
 };

@@ -8,7 +8,6 @@ import { useSimulation } from "@/hooks/useSimulation";
 import { TemplatePicker } from "@/components/simulation/TemplatePicker";
 import { SimulationCanvas } from "@/components/simulation/SimulationCanvas";
 import { NodeInspector } from "@/components/simulation/NodeInspector";
-import { SimulationProgress } from "@/components/simulation/SimulationProgress";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AgenticSimulationView } from "@/components/simulation/AgenticSimulationView";
 import { FanChart } from "@/components/simulation/results/FanChart";
@@ -17,6 +16,7 @@ import { HistogramChart } from "@/components/simulation/results/HistogramChart";
 import { ScenarioTable } from "@/components/simulation/results/ScenarioTable";
 import { VaRCard } from "@/components/simulation/results/VaRCard";
 import { Card, CardContent } from "@/components/ui/card";
+import { CollapsibleReasoningFeed } from "@/components/activity/CollapsibleReasoningFeed";
 
 export const SimulationsPage = () => {
   const [searchParams] = useSearchParams();
@@ -55,8 +55,6 @@ export const SimulationsPage = () => {
 
   const {
     isRunning,
-    progress,
-    thinkingSteps,
     fanChart,
     tornadoChart,
     histogram,
@@ -141,12 +139,7 @@ export const SimulationsPage = () => {
           <TabsContent value="results" className="flex-1 m-0 overflow-y-auto">
             <div className="p-6 space-y-6 max-w-5xl mx-auto">
               {/* Running state */}
-              {isRunning && (
-                <SimulationProgress
-                  progress={progress}
-                  thinkingSteps={thinkingSteps}
-                />
-              )}
+              <CollapsibleReasoningFeed flowType="simulation" />
 
               {/* Empty state */}
               {!isRunning && !hasResults && (

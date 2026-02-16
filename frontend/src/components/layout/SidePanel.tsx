@@ -21,6 +21,8 @@ import { useInsightStore } from "@/stores/insightStore";
 import { useSimulationStore } from "@/stores/simulationStore";
 import { useActionPlanStore } from "@/stores/actionPlanStore";
 import { useChat } from "@/hooks/useChat";
+import { useActivityFeedStore } from "@/stores/activityFeedStore";
+import { AgenticActivityFeed } from "@/components/activity/AgenticActivityFeed";
 import { cn } from "@/lib/utils";
 
 /* ---------- MarkdownContent ---------- */
@@ -146,6 +148,25 @@ const ThinkingSection = ({
       )}
     </div>
   );
+};
+
+/* ---------- ChatThinkingFeed (activity feed compact) ---------- */
+const ChatThinkingFeed = ({
+  isStreaming,
+  thinkingSteps,
+}: {
+  isStreaming: boolean;
+  thinkingSteps: string[];
+}) => {
+  const feedIsActive = useActivityFeedStore((s) => s.isActive);
+  const feedSteps = useActivityFeedStore((s) => s.steps);
+
+  // Use activity feed if it has steps, otherwise fall back to ThinkingSection
+  if (feedIsActive && feedSteps.length > 0) {
+    return <AgenticActivityFeed variant="compact" flowType="chat" />;
+  }
+
+  return <ThinkingSection steps={thinkingSteps} isStreaming={isStreaming} />;
 };
 
 /* ---------- MessageBubble ---------- */
@@ -515,10 +536,7 @@ export const SidePanel = () => {
                 <div key={msg.id}>
                   {/* Show thinking above the last assistant message */}
                   {isLastAssistant && thinkingSteps.length > 0 && (
-                    <ThinkingSection
-                      steps={thinkingSteps}
-                      isStreaming={isStreaming}
-                    />
+                    <ChatThinkingFeed isStreaming={isStreaming} thinkingSteps={thinkingSteps} />
                   )}
                   <MessageBubble
                     role={msg.role as "user" | "assistant"}
