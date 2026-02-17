@@ -124,5 +124,9 @@ Open [http://localhost:5173](http://localhost:5173) to see the app.
 
 This project was built during the Claude Code Hackathon to explore the capabilities of **Opus 4.6**. I leveraged its extended thinking windows for complex market simulation and agentic planning.
 
+## Demo Video
+
+https://www.youtube.com/watch?v=mHWURXnNmyo 
+
 ---
 
